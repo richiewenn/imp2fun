@@ -1,39 +1,42 @@
 package cz.richiewenn.imp2fun.cfg
 
-open class Node(var edge: Edge) : Dot {
-    companion object { var lastId = 0 }
+class Node(var edges: List<Edge> = emptyList()) {
+    constructor(vararg edges: Edge) : this(edges.toList())
 
+    companion object { var lastId = 0 }
     val id = lastId++
-    fun plus(node: Node): Node {
-        this.last().edge = node.edge
+
+    fun plusLeft(node: Node): Node {
+        if(this.lastLeft().edges.isEmpty()) {
+            this.lastLeft().edges = node.edges
+        } else {
+            this.lastLeft().edges.first().nodes = listOf(node)
+        }
         return this
     }
 
-    fun last(): Node {
-        var last: Node? = this
-        while(last?.edge?.expression != "END") {
-            last = last?.edge?.to
+    fun lastLeft(): Node {
+        var last: Node = this
+        while(last.edges.isNotEmpty() && last.edges.first().nodes.isNotEmpty()) {
+            last = last.edges.first().nodes.first()
         }
         return last
     }
 
-    override fun toDot(label: Boolean): String = "$id"+edge.toDot()
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
 
-    override fun toString(): String {
-        return "[$id]"+edge.toString()
-    }
-}
+        other as Node
 
-class EndNode(expression: String = "END") : Node(EndEdge(expression))
+        if (id != other.id) return false
 
-class ConditionNode(var inner: Edge, otherwise: Edge) : Node(otherwise) {
-    init {
-        inner.expression = "IF "+inner.expression
+        return true
     }
 
-    override fun toDot(label: Boolean): String = "$id"+inner.toDot(label)+System.lineSeparator()+super.toDot(label)
-
-    override fun toString(): String {
-        return "[$id]IF"+inner.toString()+System.lineSeparator()+super.toString()
+    override fun hashCode(): Int {
+        return id
     }
+
+
 }
