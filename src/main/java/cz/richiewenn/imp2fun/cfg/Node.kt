@@ -2,7 +2,7 @@ package cz.richiewenn.imp2fun.cfg
 
 class Node(var outEdges: List<Edge> = emptyList()) {
     constructor(vararg edges: Edge) : this(edges.toList())
-    var inEdges: List<Edge> = ArrayList()
+    var inEdges: MutableList<Edge> = ArrayList()
 
     companion object { var lastId = 0 }
     val id = lastId++
@@ -11,15 +11,15 @@ class Node(var outEdges: List<Edge> = emptyList()) {
         if(this.lastLeft().outEdges.isEmpty()) {
             this.lastLeft().outEdges = node.outEdges
         } else {
-            this.lastLeft().outEdges.first().nodes = listOf(node)
+            this.lastLeft().outEdges.first().node = node
         }
         return this
     }
 
     fun lastLeft(): Node {
         var last: Node = this
-        while(last.outEdges.isNotEmpty() && last.outEdges.first().nodes.isNotEmpty()) {
-            last = last.outEdges.first().nodes.first()
+        while(last.outEdges.isNotEmpty() && last.outEdges.first().node != null) {
+            last = last.outEdges.first().node!!
         }
         return last
     }

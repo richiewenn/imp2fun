@@ -44,7 +44,7 @@ object Ast2Cfg {
             Edge(body, astCondition.toString())
         )
         body.lastLeft().outEdges = listOf(Edge(condition, "JUMP"))
-        defI.outEdges.first().nodes = listOf(condition)
+        defI.outEdges.first().node = condition
 
         return defI
     }
