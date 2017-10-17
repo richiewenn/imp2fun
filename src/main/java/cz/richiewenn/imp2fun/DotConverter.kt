@@ -13,7 +13,7 @@ class DotConverter {
         }
         this.stack.add(node)
         val result = ArrayList<String>()
-        for (edge in node.edges) {
+        for (edge in node.outEdges) {
             result.addAll(edge.nodes.flatMap {
                 if (this.stack.contains(it)) {
                     return@flatMap listOf("${node.id}->${it.id} [label=\"${edge.exp}\"]")

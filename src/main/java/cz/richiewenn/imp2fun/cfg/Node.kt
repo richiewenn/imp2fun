@@ -1,24 +1,25 @@
 package cz.richiewenn.imp2fun.cfg
 
-class Node(var edges: List<Edge> = emptyList()) {
+class Node(var outEdges: List<Edge> = emptyList()) {
     constructor(vararg edges: Edge) : this(edges.toList())
+    var inEdges: List<Edge> = ArrayList()
 
     companion object { var lastId = 0 }
     val id = lastId++
 
     fun plusLeft(node: Node): Node {
-        if(this.lastLeft().edges.isEmpty()) {
-            this.lastLeft().edges = node.edges
+        if(this.lastLeft().outEdges.isEmpty()) {
+            this.lastLeft().outEdges = node.outEdges
         } else {
-            this.lastLeft().edges.first().nodes = listOf(node)
+            this.lastLeft().outEdges.first().nodes = listOf(node)
         }
         return this
     }
 
     fun lastLeft(): Node {
         var last: Node = this
-        while(last.edges.isNotEmpty() && last.edges.first().nodes.isNotEmpty()) {
-            last = last.edges.first().nodes.first()
+        while(last.outEdges.isNotEmpty() && last.outEdges.first().nodes.isNotEmpty()) {
+            last = last.outEdges.first().nodes.first()
         }
         return last
     }

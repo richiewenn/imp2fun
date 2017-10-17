@@ -28,7 +28,7 @@ object Ast2Cfg {
         condition.plusLeft(body)
         val helpOtherwiseNode = Node(Edge(exp = "JUMP"))
         val otherwise = Edge(helpOtherwiseNode, exp = "OTHERWISE")
-        condition.edges = listOf(otherwise).plus(condition.edges)
+        condition.outEdges = listOf(otherwise).plus(condition.outEdges)
         body.plusLeft(helpOtherwiseNode)
         return condition
     }
@@ -43,8 +43,8 @@ object Ast2Cfg {
             Edge(Node(), "OTHERWISE"),
             Edge(body, astCondition.toString())
         )
-        body.lastLeft().edges = listOf(Edge(condition, "JUMP"))
-        defI.edges.first().nodes = listOf(condition)
+        body.lastLeft().outEdges = listOf(Edge(condition, "JUMP"))
+        defI.outEdges.first().nodes = listOf(condition)
 
         return defI
     }
