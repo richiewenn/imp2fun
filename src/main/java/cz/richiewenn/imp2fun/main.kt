@@ -45,8 +45,13 @@ public class Prime {
     val methodParams = method.childNodes.subList(1, method.childNodes.size - 2)
 
     val cfg = Ast2Cfg.toCFG(methodBody)
-    val result = DotConverter().convert(cfg).joinToString(System.lineSeparator())
-    println(result)
+    val result1 = DotConverter().convert(cfg).joinToString(System.lineSeparator())
+    val filledCfg = CfgInEdgesFiller().fill(cfg)
+    val optimizedCfg = CfgJumpOptimizer().optimize(filledCfg)
+    val result2 = DotConverter().convert(optimizedCfg).joinToString(System.lineSeparator())
+    println(result1)
+    println("--------------------")
+    println(result2)
 }
 
 

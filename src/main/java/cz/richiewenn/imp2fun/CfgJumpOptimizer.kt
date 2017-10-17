@@ -19,16 +19,18 @@ class CfgJumpOptimizer {
     fun optimize(node: Node): Node {
         this.stack.add(node)
         for (edge in node.outEdges) {
-            if(edge.node == null) {
+            if (edge.node == null) {
                 continue
             }
 
-                if (!this.stack.contains(edge.node)) {
-                    this.optimize(edge.node!!)
-                }
+            if (!this.stack.contains(edge.node)) {
+                this.optimize(edge.node!!)
+            }
 
-            if(edge.exp == "JUMP") {
-//                node.outEdges = node.outEdges.first().nodes.first()
+            if (edge.exp == "JUMP") {
+                val child = node.outEdges.first().node!!
+                node.inEdges.forEach { it.node = child }
+                child.inEdges = node.inEdges
             }
         }
         return node
