@@ -1,6 +1,7 @@
 package cz.richiewenn.imp2fun
 
 import cz.richiewenn.imp2fun.cfg.Node
+import cz.richiewenn.imp2fun.expressions.JumpExpr
 import java.util.*
 
 /**
@@ -27,7 +28,7 @@ class CfgJumpOptimizer {
                 this.optimize(edge.node!!)
             }
 
-            if (edge.exp == "JUMP") {
+            if (edge.exp is JumpExpr) {
                 val child = node.outEdges.first().node!!
                 node.inEdges.forEach { it.node = child }
                 child.inEdges = node.inEdges

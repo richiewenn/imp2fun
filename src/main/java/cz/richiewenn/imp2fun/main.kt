@@ -11,7 +11,7 @@ public class Fibonacci {
         int[] feb = new int[count];
         feb[0] = 0;
         feb[1] = 1;
-        for(int i=2; i < count; i++){
+        for(int i=2; i < count; i = i + 1){
             feb[i] = feb[i-1] + feb[i-2];
         }
         return feb;
@@ -35,9 +35,19 @@ public class Prime {
     }
 }
         """.trimIndent()
+val simple = """
+public class Simple {
+    public int simple() {
+        int a = 0;
+        int b = 0;
+        b = b + 1;
+    }
+}
+        """.trimIndent()
 
-//    val cu = JavaParser.parse(fibonacci)
-    val cu = JavaParser.parse(primes)
+//    val cu = JavaParser.parse(simple)
+    val cu = JavaParser.parse(fibonacci)
+//    val cu = JavaParser.parse(primes)
     val method = cu.findRootNode().childNodes[0].childNodes[1]
     val methodName = method.childNodes[0]
     val methodBody = method.childNodes.last()

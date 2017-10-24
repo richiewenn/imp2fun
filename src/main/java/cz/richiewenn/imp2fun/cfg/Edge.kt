@@ -1,7 +1,10 @@
 package cz.richiewenn.imp2fun.cfg
 
+import cz.richiewenn.imp2fun.expressions.EmptyExpr
+import cz.richiewenn.imp2fun.expressions.Expr
+
 // TODO: Get rid of this nullable type Node?
-class Edge(var node: Node? = null, val exp: String = "") {
+class Edge(var node: Node? = null, val exp: Expr = EmptyExpr()) {
 
     companion object { var lastId = 0 }
     val id = lastId++
@@ -20,6 +23,5 @@ class Edge(var node: Node? = null, val exp: String = "") {
     override fun hashCode(): Int {
         return id
     }
-
 
 }

@@ -1,16 +1,20 @@
 package cz.richiewenn.imp2fun
 
+import com.github.javaparser.ast.stmt.ExpressionStmt
 import com.github.javaparser.ast.Node as AstNode
 import cz.richiewenn.imp2fun.cfg.*
+import cz.richiewenn.imp2fun.expressions.JumpExpr
+import cz.richiewenn.imp2fun.expressions.OtherwiseExpr
 
 object Ast2Cfg {
     fun toCFG(nodes: List<AstNode>): Node {
         return nodes.map { node ->
             return@map when (node.metaModel.typeName) {
+                // TODO: when (node) { is ExpressionStmt -> ..... etc.
                 "MethodDeclaration" -> Node()
                 "ForStmt" -> forToCFG(node)
                 "UnaryExpr", "BinaryExpr", "VariableDeclarationExpr", "AssignExpr",
-                "ExpressionStmt" -> Node(Edge(Node(), node.toString()))
+                "ExpressionStmt" -> Node(Edge(Node(), ExpressionMapper.map(node)))
                 "IfStmt" -> ifToCFG(node)
                 "BlockStmt" -> toCFG(node.childNodes)
                 "ReturnStmt" -> Node()
@@ -26,8 +30,8 @@ object Ast2Cfg {
         val condition = toCFG(children[0])
         val body = toCFG(children[1])
         condition.plusLeft(body)
-        val helpOtherwiseNode = Node(Edge(exp = "JUMP"))
-        val otherwise = Edge(helpOtherwiseNode, exp = "OTHERWISE")
+        val helpOtherwiseNode = Node(Edge(exp = JumpExpr()))
+        val otherwise = Edge(helpOtherwiseNode, exp = OtherwiseExpr())
         condition.outEdges = listOf(otherwise).plus(condition.outEdges)
         body.plusLeft(helpOtherwiseNode)
         return condition
@@ -40,10 +44,10 @@ object Ast2Cfg {
         val ipp = toCFG(children[2])
         val body = toCFG(children[3]).plusLeft(ipp)
         val condition = Node(
-            Edge(Node(), "OTHERWISE"),
-            Edge(body, astCondition.toString())
+            Edge(Node(), OtherwiseExpr()),
+            Edge(body, ExpressionMapper.map(astCondition))
         )
-        body.lastLeft().outEdges = listOf(Edge(condition, "JUMP"))
+        body.lastLeft().outEdges = listOf(Edge(condition, JumpExpr()))
         defI.outEdges.first().node = condition
 
         return defI
