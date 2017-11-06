@@ -8,11 +8,11 @@ class CfgInEdgesFiller {
     private val stack: Stack<Node> = Stack()
 
     fun fill(node: Node): Node {
-        convert(node).forEach {
+        this.convert(node).forEach {
             val parent = it.first
             val child = it.second
             val edge = it.third
-            child.inEdges.add(edge)
+            child.inEdges.add(Edge(parent, edge.exp))
         }
         return node
     }
