@@ -23,12 +23,12 @@ public class Prime {
     public int[] primes(int N) {
         int[] primes = new int[N];
         int count = 0, max_count = 100, i;
-        for(int num=1; count<N; num++) {
-            for(i=2; num%i != 0; i++);
+        for(int num=1; count<N; num = num + 1) {
+            for(i=2; num%i != 0; i = i + 1);
 
             if(i == num) {
                 primes[count] = num;
-                count++;
+                count = count + 1;
             }
         }
         return primes;
@@ -46,8 +46,8 @@ public class Simple {
         """.trimIndent()
 
 //    val cu = JavaParser.parse(simple)
-    val cu = JavaParser.parse(fibonacci)
-//    val cu = JavaParser.parse(primes)
+//    val cu = JavaParser.parse(fibonacci)
+    val cu = JavaParser.parse(primes)
     val method = cu.findRootNode().childNodes[0].childNodes[1]
     val methodName = method.childNodes[0]
     val methodBody = method.childNodes.last()
@@ -55,13 +55,23 @@ public class Simple {
     val methodParams = method.childNodes.subList(1, method.childNodes.size - 2)
 
     val cfg = Ast2Cfg.toCFG(methodBody)
+    remarkIds(cfg)
     val result1 = DotConverter().convert(cfg).joinToString(System.lineSeparator())
     val filledCfg = CfgInEdgesFiller().fill(cfg)
-    val optimizedCfg = CfgJumpOptimizer().optimize(filledCfg)
-    val result2 = DotConverter().convert(optimizedCfg).joinToString(System.lineSeparator())
-    println(result1)
-    println("--------------------")
-    println(result2)
+//    val optimizedCfg = CfgJumpOptimizer().optimize(filledCfg)
+    val result2 = DotConverter().convert(filledCfg).joinToString(System.lineSeparator())
+    val dt = DominanceTree()
+    val dom = dt.dominanceTree(filledCfg)
+//    val dtDot = dt.idoms.map { "${it.first}->${it.second}" }.joinToString(System.lineSeparator())
+    val result3 = DotConverter().convert(filledCfg).joinToString(System.lineSeparator())
+
+//    println(result1)
+//    println("--------------------")
+//    println(result2)
+//    println("--------------------")
+    println(result3)
+//    println("--------------------")
+    println(dom.map { "${it.first}->${it.second}"}.joinToString(System.lineSeparator()))
 }
 
 

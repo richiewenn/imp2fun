@@ -5,8 +5,23 @@ class Node(var outEdges: List<Edge> = emptyList()) {
     var inEdges: MutableList<Edge> = ArrayList()
 
     companion object { var lastId = 0 }
-    val id = lastId++
+    var id = lastId++
+    var color: Node.Color = Node.Color.WHITE
+    var doms: Set<Node> = HashSet()
 
+    fun idom(): Node {
+        return this.doms.filter { it.id != this.id }.minBy { it.id } ?: this
+    }
+    fun dominanceFrontiers() {
+
+    }
+    fun children(): List<Node> = this.outEdges.map { it.node }.filter { it != null } as List<Node>
+    fun parents(): List<Node> = this.inEdges.map { it.node }.filter { it != null } as List<Node>
+    fun fwParents(): List<Node> = this.inEdges.filter { it.orientation == Edge.Orientation.FORWARD }.map { it.node }.filter { it != null } as List<Node>
+    fun resetColors() {
+        color = Color.WHITE
+        this.children().filter { it.color != Color.WHITE }.forEach { it.resetColors() }
+    }
     fun plusLeft(node: Node): Node {
         if(this.lastLeft().outEdges.isEmpty()) {
             this.lastLeft().outEdges = node.outEdges
@@ -39,5 +54,8 @@ class Node(var outEdges: List<Edge> = emptyList()) {
         return id
     }
 
+    enum class Color {
+        WHITE, GREY, BLACK
+    }
 
 }

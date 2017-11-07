@@ -18,7 +18,6 @@ object ExpressionMapper {
             is ArrayAccessExpr -> ArrUsageExpr(this.map(source.name).toString(), this.map(source.index))
             else -> TODO(source.toString())
         }
-        //TODO
     }
 
     fun mapDef(source: Expression): Expr {

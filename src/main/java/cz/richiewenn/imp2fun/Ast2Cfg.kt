@@ -47,7 +47,7 @@ object Ast2Cfg {
             Edge(Node(), OtherwiseExpr()),
             Edge(body, ExpressionMapper.map(astCondition))
         )
-        body.lastLeft().outEdges = listOf(Edge(condition, JumpExpr()))
+        body.lastLeft().outEdges = listOf(Edge(condition, JumpExpr(), Edge.Orientation.BACKWARD))
         defI.outEdges.first().node = condition
 
         return defI
