@@ -60,8 +60,8 @@ public class Simple {
     val filledCfg = CfgInEdgesFiller().fill(cfg)
 //    val optimizedCfg = CfgJumpOptimizer().optimize(filledCfg)
     val result2 = DotConverter().convert(filledCfg).joinToString(System.lineSeparator())
-    val dt = DominanceTree()
-    val dom = dt.dominanceTree(filledCfg)
+//    val dt = DominanceTree()
+//    val dom = dt.dominanceTree(filledCfg)
 //    val dtDot = dt.idoms.map { "${it.first}->${it.second}" }.joinToString(System.lineSeparator())
     val result3 = DotConverter().convert(filledCfg).joinToString(System.lineSeparator())
 
@@ -70,8 +70,14 @@ public class Simple {
 //    println(result2)
 //    println("--------------------")
     println(result3)
-//    println("--------------------")
-    println(dom.map { "${it.first}->${it.second}"}.joinToString(System.lineSeparator()))
+    println("--------------------")
+//    println(dom.map { "${it.first}->${it.second}"}.joinToString(System.lineSeparator()))
+
+    val frontiers = DominanceFrontiers.calculate(filledCfg)
+    if(frontiers.isEmpty()) {
+        println("No frontiers")
+    }
+    println(frontiers.map {it.id}.joinToString(", "))
 }
 
 

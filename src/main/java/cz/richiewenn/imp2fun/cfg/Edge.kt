@@ -14,13 +14,13 @@ class Edge(var node: Node? = null, val exp: Expr = EmptyExpr(), var orientation:
 
         other as Edge
 
-        if (id != other.id) return false
+        if (node?.id != other.node?.id) return false
 
         return true
     }
 
     override fun hashCode(): Int {
-        return id
+        return if(node != null) node!!.id else id
     }
 
     enum class Orientation {

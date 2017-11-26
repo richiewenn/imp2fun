@@ -19,10 +19,12 @@ class DotConverter {
             }
             result.addAll(
                 if (this.stack.contains(edge.node)) {
-                    listOf("${node.id}->${edge.node!!.id} [label=\"${edge.exp} ${edge.orientation}\"]", "${node.id} [label=\"${node.id} ${node.doms}\"]")
+                    listOf("${node.id}->${edge.node!!.id} [label=\"${edge.exp} ${edge.orientation}\"]")
+//                    listOf("${node.id}->${edge.node!!.id} [label=\"${edge.exp} ${edge.orientation}\"]", "${node.id} [label=\"${node.id} ${node.doms.map { it.id }}\"]")
 //                    listOf("${node.id}->${edge.node!!.id} [label=\"${node.doms}\"]")
                 } else {
-                    listOf("${node.id}->${edge.node!!.id} [label=\"${edge.exp} ${edge.orientation}\"]", "${node.id} [label=\"${node.id} ${node.doms}\"]") + this.convert(edge.node)
+                    listOf("${node.id}->${edge.node!!.id} [label=\"${edge.exp} ${edge.orientation}\"]") + this.convert(edge.node)
+//                    listOf("${node.id}->${edge.node!!.id} [label=\"${edge.exp} ${edge.orientation}\"]", "${node.id} [label=\"${node.id} ${node.doms.map { it.id }}\"]") + this.convert(edge.node)
 //                    listOf("${node.id}->${edge.node!!.id} [label=\"${node.doms}\"]").plus(this.convert(edge.node))
                 }
             )

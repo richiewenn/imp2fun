@@ -2,19 +2,15 @@ package cz.richiewenn.imp2fun.cfg
 
 class Node(var outEdges: List<Edge> = emptyList()) {
     constructor(vararg edges: Edge) : this(edges.toList())
-    var inEdges: MutableList<Edge> = ArrayList()
+    var inEdges: MutableSet<Edge> = HashSet()
 
     companion object { var lastId = 0 }
     var id = lastId++
     var color: Node.Color = Node.Color.WHITE
     var doms: Set<Node> = HashSet()
+    var dominanceFrontiers = HashSet<Node>()
 
-    fun idom(): Node {
-        return this.doms.filter { it.id != this.id }.minBy { it.id } ?: this
-    }
-    fun dominanceFrontiers() {
-
-    }
+    fun idom() = this.doms.filter { it.id != this.id }.minBy { it.id } ?: this
     fun children(): List<Node> = this.outEdges.map { it.node }.filter { it != null } as List<Node>
     fun parents(): List<Node> = this.inEdges.map { it.node }.filter { it != null } as List<Node>
     fun fwParents(): List<Node> = this.inEdges.filter { it.orientation == Edge.Orientation.FORWARD }.map { it.node }.filter { it != null } as List<Node>

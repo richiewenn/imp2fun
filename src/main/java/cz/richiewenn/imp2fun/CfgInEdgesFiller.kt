@@ -11,7 +11,7 @@ class CfgInEdgesFiller {
     fun fill(node: Node): Node {
         node.resetColors()
         this.convert(node)
-        this.edges.forEach { node, parents -> node.inEdges = parents.toMutableList() }
+        this.edges.forEach { node, parents -> node.inEdges = parents.toMutableSet() }
         node.resetColors()
 //        this.convert(node).forEach {
 //            val parent = it.first
