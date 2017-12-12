@@ -1,7 +1,25 @@
 package cz.richiewenn.imp2fun.cfg
 
-class Node(var outEdges: List<Edge> = emptyList()) {
+import java.io.BufferedOutputStream
+import java.io.ObjectOutputStream
+import java.io.OutputStream
+import java.io.Serializable
+import java.io.ByteArrayOutputStream
+import com.sun.xml.internal.ws.streaming.XMLStreamReaderUtil.close
+import sun.plugin2.liveconnect.ArgumentHelper.readObject
+import java.io.ByteArrayInputStream
+import java.io.ObjectInputStream
+
+
+
+
+
+class Node(var outEdges: List<Edge> = emptyList()) : Serializable {
     constructor(vararg edges: Edge) : this(edges.toList())
+    constructor(vararg nodes: Node) : this(nodes.toList().map { Edge(it) })
+    constructor(id: Int, vararg nodes: Node) : this(nodes.toList().map { Edge(it) }) {
+        this.id = id
+    }
     var inEdges: MutableSet<Edge> = HashSet()
 
     companion object { var lastId = 0 }
@@ -48,6 +66,17 @@ class Node(var outEdges: List<Edge> = emptyList()) {
 
     override fun hashCode(): Int {
         return id
+    }
+
+    fun clone(): Node {
+        val baos = ByteArrayOutputStream()
+        val oos = ObjectOutputStream(baos)
+        oos.writeObject(this)
+        oos.close()
+        val ois = ObjectInputStream(ByteArrayInputStream(baos.toByteArray()))
+        val o = ois.readObject()
+        ois.close()
+        return o as Node
     }
 
     enum class Color {

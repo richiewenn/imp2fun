@@ -1,4 +1,6 @@
 package cz.richiewenn.imp2fun.expressions
 
-interface Expr {
+import java.io.Serializable
+
+interface Expr : Serializable {
 }

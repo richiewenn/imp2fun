@@ -9,25 +9,38 @@ object DominanceFrontiers {
         val dominanceFrontiers = HashSet<Node>()
         deepSearch(node) { b ->
             if (b.inEdges.size >= 2) {
-//                for (p in b.parents()) {
-//                    val runner = p
-                    //                    while (!b.doms.contains(runner)) {
-//                        dominanceFrontiers.add(b)
-//                        runner.dominanceFrontiers.add(b)
-//                    }
-                    fun searchDF(runner: Node) {
-                        if (b.idom() != runner) {
-                            runner.parents().forEach { searchDF(it) }
-                        }
-                        if(b.idom() == runner) {
-                            dominanceFrontiers.add(b)
-                        }
+                val walk = ArrayList<Node>()
+                fun searchDF(runner: Node) {
+                    if (b.idom() != runner && !walk.contains(runner)) {
+                        walk.add(runner)
+                        runner.parents().forEach { searchDF(it) }
                     }
-                    searchDF(b)
-//                }
+                    if (b.idom() == runner) {
+                        dominanceFrontiers.add(b)
+//                        walk.forEach { it.dominanceFrontiers.add(b) }
+                    }
+                }
+                searchDF(b)
             }
         }
         return dominanceFrontiers
+    }
+
+    fun fill(node: Node): Node {
+        deepSearch(node) { b ->
+            if (b.inEdges.size >= 2) {
+                for (p in b.parents()) {
+                    fun searchDF(runner: Node) {
+                        if(!b.doms.contains(runner)) {
+                            runner.dominanceFrontiers.add(b)
+                            runner.fwParents().forEach { searchDF(it) }
+                        }
+                    }
+                    searchDF(p)
+                }
+            }
+        }
+        return node
     }
 }
 

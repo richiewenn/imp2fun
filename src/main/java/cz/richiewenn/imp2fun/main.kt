@@ -3,8 +3,7 @@ package cz.richiewenn.imp2fun
 import com.github.javaparser.JavaParser
 import com.github.javaparser.ast.Node as AstNode
 
-fun main(args: Array<String>) {
-    val fibonacci = """
+val fibonacci = """
 public class Fibonacci {
 
     public int[] fibonacci(int count, int count2) {
@@ -18,7 +17,7 @@ public class Fibonacci {
     }
 }
         """.trimIndent()
-    val primes = """
+val primes = """
 public class Prime {
     public int[] primes(int N) {
         int[] primes = new int[N];
@@ -40,14 +39,22 @@ public class Simple {
     public int simple() {
         int a = 0;
         int b = 0;
-        b = b + 1;
+        if(a == 0) {
+            b = b + 1;
+        }
+        else {
+            b = 10;
+        }
+        int c = 2;
     }
 }
         """.trimIndent()
 
-//    val cu = JavaParser.parse(simple)
+fun main(args: Array<String>) {
+
+    val cu = JavaParser.parse(simple)
 //    val cu = JavaParser.parse(fibonacci)
-    val cu = JavaParser.parse(primes)
+//    val cu = JavaParser.parse(primes)
     val method = cu.findRootNode().childNodes[0].childNodes[1]
     val methodName = method.childNodes[0]
     val methodBody = method.childNodes.last()
@@ -73,11 +80,17 @@ public class Simple {
     println("--------------------")
 //    println(dom.map { "${it.first}->${it.second}"}.joinToString(System.lineSeparator()))
 
-    val frontiers = DominanceFrontiers.calculate(filledCfg)
-    if(frontiers.isEmpty()) {
-        println("No frontiers")
-    }
-    println(frontiers.map {it.id}.joinToString(", "))
+//    val frontiers = DominanceFrontiers.calculate(filledCfg)
+//    if(frontiers.isEmpty()) {
+//        println("No frontiers")
+//    }
+//    println(frontiers.map {it.id}.joinToString(", "))
+
+    val withFrontiers = DominanceFrontiers.fill(filledCfg)
+    val result4 = DotConverter().convert(withFrontiers).joinToString(System.lineSeparator())
+    println("--------------------")
+    println(result4)
+
 }
 
 
