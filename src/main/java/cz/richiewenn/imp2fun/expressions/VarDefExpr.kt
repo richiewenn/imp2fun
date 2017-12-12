@@ -1,6 +1,6 @@
 package cz.richiewenn.imp2fun.expressions
 
-class VarDefExpr(
+data class VarDefExpr(
     val name: String
 
 ) : Expr {

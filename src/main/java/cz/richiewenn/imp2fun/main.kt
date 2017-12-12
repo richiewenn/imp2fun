@@ -42,9 +42,6 @@ public class Simple {
         if(a == 0) {
             b = b + 1;
         }
-        else {
-            b = 10;
-        }
         int c = 2;
     }
 }
@@ -90,6 +87,10 @@ fun main(args: Array<String>) {
     val result4 = DotConverter().convert(withFrontiers).joinToString(System.lineSeparator())
     println("--------------------")
     println(result4)
+    println("--------------------")
+    val phi = PhiFiller.fill(withFrontiers)
+    val result5 = DotConverter().convert(phi).joinToString(System.lineSeparator())
+    println(result5)
 
 }
 
