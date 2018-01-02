@@ -27,6 +27,7 @@ object DominanceFrontiers {
     }
 
     fun fill(node: Node): Node {
+        remarkIds(node)
         depthFirstSearch(node) { b ->
             if (b.inEdges.size >= 2) {
                 for (p in b.parents()) {
@@ -48,14 +49,11 @@ fun depthFirstSearch(root: Node, callback: (Node) -> Unit) {
     val stack: Stack<Node> = Stack()
     fun f(node: Node) {
         stack.add(node)
-        for (edge in node.outEdges) {
-            if (edge.node == null) {
-                continue
+        for (childNode in node.children()) {
+            if (!stack.contains(childNode)) {
+                f(childNode)
             }
-            if (!stack.contains(edge.node)) {
-                f(edge.node!!)
-            }
-            callback(node)
+            callback(childNode)
         }
     }
     f(root)
