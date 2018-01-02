@@ -29,10 +29,14 @@ class CfgJumpOptimizer {
             }
 
             if (edge.exp is JumpExpr) {
-//                val child = node.outEdges.first().node!!
-//                node.inEdges.forEach { it.node = child }
-//                child.inEdges = node.inEdges
-                node.outEdges = node.outEdges.first().node?.outEdges!!
+                val child = node.outEdges.first().node!!
+                node.inEdges.forEach {
+                    it.node?.outEdges
+                        ?.filter { parentEdges -> parentEdges.node?.id == node.id }
+                        ?.forEach { edge -> edge.node = child }
+                }
+                val edgs = child.inEdges.filter { e -> e.node?.id != node.id}
+                child.inEdges = (edgs + node.inEdges).toMutableSet()
             }
         }
         return node

@@ -11,10 +11,10 @@ internal class CfgJumpOptimizerTest {
 
     @Test
     fun `Optimize simple graph`() {
-        val graph = Node(1, listOf(Edge(Node(2, Node(3)), JumpExpr())))
+        val graph = CfgInEdgesFiller().fill(Node(1, listOf(Edge(Node(2, listOf(Edge(Node(3), JumpExpr())))))))
 
         val optimizedGraph = CfgJumpOptimizer().optimize(graph)
 
-        assertEquals(optimizedGraph.outEdges.first().node?.id, 3)
+        assertEquals(3, optimizedGraph.outEdges.first().node?.id)
     }
 }

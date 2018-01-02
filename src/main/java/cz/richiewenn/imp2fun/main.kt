@@ -37,12 +37,11 @@ public class Prime {
 val simple = """
 public class Simple {
     public int simple() {
-        int a = 0;
-        int b = 0;
-        if(a == 0) {
-            b = b + 1;
+        int a = 1;
+        if(a == 1) {
+            a = 2;
         }
-        int c = 2;
+        int b = a;
     }
 }
         """.trimIndent()
@@ -60,21 +59,21 @@ fun main(args: Array<String>) {
 
     val cfg = Ast2Cfg.toCFG(methodBody)
     remarkIds(cfg)
-    val result1 = DotConverter().convert(cfg).joinToString(System.lineSeparator())
-    val optimizedCfg = CfgJumpOptimizer().optimize(cfg)
-    val filledCfg = CfgInEdgesFiller().fill(optimizedCfg)
-    val result2 = DotConverter().convert(filledCfg).joinToString(System.lineSeparator())
-//    val dt = DominanceTree()
-//    val dom = dt.dominanceTree(filledCfg)
-//    val dtDot = dt.idoms.map { "${it.first}->${it.second}" }.joinToString(System.lineSeparator())
-    val result3 = DotConverter().convert(filledCfg).joinToString(System.lineSeparator())
+    val cfgResult = DotConverter().convert(cfg).joinToString(System.lineSeparator())
+    println("--------------------cfg")
+    println(cfgResult)
 
-//    println(result1)
-//    println("--------------------")
-//    println(result2)
-//    println("--------------------")
-    println(result3)
-    println("--------------------")
+    val filledCfg = CfgInEdgesFiller().fill(cfg)
+    val filledCfgResult = DotConverter().convert(filledCfg).joinToString(System.lineSeparator())
+    println("--------------------filledCfg")
+    println(filledCfgResult)
+
+    val optimizedCfg = CfgJumpOptimizer().optimize(filledCfg)
+    val optimizedCfgResult = DotConverter().convert(optimizedCfg).joinToString(System.lineSeparator())
+    println("--------------------optimizedCfg")
+    println(optimizedCfgResult)
+
+
 //    println(dom.map { "${it.first}->${it.second}"}.joinToString(System.lineSeparator()))
 
 //    val frontiers = DominanceFrontiers.calculate(filledCfg)
@@ -85,11 +84,15 @@ fun main(args: Array<String>) {
 
     val withFrontiers = DominanceFrontiers.fill(filledCfg)
     val result4 = DotConverter().convert(withFrontiers).joinToString(System.lineSeparator())
-    println("--------------------")
+    println("--------------------dominanceTree")
+    println(DominanceTree().dominanceTree(filledCfg).map { "${it.first}->${it.second}"}.joinToString(System.lineSeparator()))
+    println("--------------------withFrontiers")
     println(result4)
-    println("--------------------")
+    println("--------------------Dominance Frontiers")
+    println(DominanceFrontiers.calculate(filledCfg))
     val phi = PhiFiller.fill(withFrontiers)
     val result5 = DotConverter().convert(phi).joinToString(System.lineSeparator())
+    println("--------------------phi")
     println(result5)
 
 }

@@ -1,6 +1,5 @@
 package cz.richiewenn.imp2fun
 
-import cz.richiewenn.imp2fun.cfg.Edge
 import cz.richiewenn.imp2fun.cfg.Node
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
