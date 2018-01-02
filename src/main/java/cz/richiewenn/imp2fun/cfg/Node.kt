@@ -20,6 +20,9 @@ class Node(var outEdges: List<Edge> = emptyList()) : Serializable {
     constructor(id: Int, vararg nodes: Node) : this(nodes.toList().map { Edge(it) }) {
         this.id = id
     }
+    constructor(id: Int, edges: List<Edge>) : this(edges) {
+        this.id = id
+    }
     var inEdges: MutableSet<Edge> = HashSet()
 
     companion object { var lastId = 0 }

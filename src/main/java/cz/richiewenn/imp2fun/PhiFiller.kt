@@ -10,9 +10,9 @@ object PhiFiller {
 
     fun fill(node: Node): Node {
         val frontiers = DominanceFrontiers.calculate(node)
-        deepSearch(node) { searchedNode ->
+        depthFirstSearch(node) { searchedNode ->
             if (!frontiers.contains(searchedNode)) {
-                return@deepSearch
+                return@depthFirstSearch
             }
             val defs: MutableMap<Node, VarDefExpr> = HashMap()
             fun goUpper(n: Node) {
@@ -26,13 +26,34 @@ object PhiFiller {
                             defs.set(it.node!!, expr.target)
                         }
                     }
-
                 }
             }
             goUpper(searchedNode)
-            val args = defs.values.filter { def -> defs.values.filter { it == def }.size >= 2 }.toSet().map { it.name }.toTypedArray()
+            val args = defs.filter { def -> defs.values.filter { it == def.value }.size >= 2 }
             val phiNode = Node(searchedNode.outEdges)
-            val phis = Edge(phiNode, PhiExpression(args))
+            val phis = Edge(phiNode, PhiExpression(args.values.mapIndexed { i, it -> it.name + "_" + i }.toTypedArray()))
+            args.values.forEachIndexed { i, it -> it.name = it.name + "_" + i }
+
+            // go from top to down. renaming until you reach new definition
+//            fun goUpperRenaming(n: Node, exp: VarDefExpr) {
+//                    n.inEdges.forEach {
+//                        it.node?.outEdges
+//                            ?.filter { it.node == n }
+//                            ?.first()
+//                            ?.exp
+//                            ?.getVarUsageExprs()
+//                            ?.forEach {
+//                                it.variableName = exp.name
+//                            }
+//                        val nn = it.node
+//                        if (nn != null) {
+//                            goUpperRenaming(nn, exp)
+//                        }
+//                    }
+//            }
+//            args.forEach { node, exp ->
+//                node.outEdges.forEach { it.exp.getVarUsageExprs().forEach { it.variableName = exp.name } }
+//            }
             searchedNode.outEdges = listOf(phis)
             phiNode.inEdges = setOf(Edge(searchedNode)).toMutableSet()
 

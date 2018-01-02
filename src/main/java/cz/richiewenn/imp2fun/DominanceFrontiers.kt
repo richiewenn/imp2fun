@@ -7,7 +7,7 @@ import kotlin.collections.HashSet
 object DominanceFrontiers {
     fun calculate(node: Node): Set<Node> {
         val dominanceFrontiers = HashSet<Node>()
-        deepSearch(node) { b ->
+        depthFirstSearch(node) { b ->
             if (b.inEdges.size >= 2) {
                 val walk = ArrayList<Node>()
                 fun searchDF(runner: Node) {
@@ -27,7 +27,7 @@ object DominanceFrontiers {
     }
 
     fun fill(node: Node): Node {
-        deepSearch(node) { b ->
+        depthFirstSearch(node) { b ->
             if (b.inEdges.size >= 2) {
                 for (p in b.parents()) {
                     fun searchDF(runner: Node) {
@@ -44,7 +44,7 @@ object DominanceFrontiers {
     }
 }
 
-fun deepSearch(root: Node, callback: (Node) -> Unit) {
+fun depthFirstSearch(root: Node, callback: (Node) -> Unit) {
     val stack: Stack<Node> = Stack()
     fun f(node: Node) {
         stack.add(node)
