@@ -1,18 +1,6 @@
 package cz.richiewenn.imp2fun.cfg
 
-import java.io.BufferedOutputStream
-import java.io.ObjectOutputStream
-import java.io.OutputStream
-import java.io.Serializable
-import java.io.ByteArrayOutputStream
-import com.sun.xml.internal.ws.streaming.XMLStreamReaderUtil.close
-import sun.plugin2.liveconnect.ArgumentHelper.readObject
-import java.io.ByteArrayInputStream
-import java.io.ObjectInputStream
-
-
-
-
+import java.io.*
 
 class Node(var outEdges: List<Edge> = emptyList()) : Serializable {
     constructor(vararg edges: Edge) : this(edges.toList())
@@ -20,7 +8,7 @@ class Node(var outEdges: List<Edge> = emptyList()) : Serializable {
     constructor(id: Int, vararg nodes: Node) : this(nodes.toList().map { Edge(it) }) {
         this.id = id
     }
-    constructor(id: Int, edges: List<Edge>) : this(edges) {
+    constructor(id: Int, edges: List<Edge>) : this(edges.toList()) {
         this.id = id
     }
     var inEdges: MutableSet<Edge> = HashSet()
