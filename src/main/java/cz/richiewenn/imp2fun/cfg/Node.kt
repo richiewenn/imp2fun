@@ -1,8 +1,6 @@
 package cz.richiewenn.imp2fun.cfg
 
-import java.io.*
-
-class Node(var outEdges: List<Edge> = emptyList()) : Serializable {
+class Node(var outEdges: List<Edge> = emptyList()) {
     constructor(vararg edges: Edge) : this(edges.toList())
     constructor(vararg nodes: Node) : this(nodes.toList().map { Edge(it) })
     constructor(id: Int, vararg nodes: Node) : this(nodes.toList().map { Edge(it) }) {
@@ -20,9 +18,9 @@ class Node(var outEdges: List<Edge> = emptyList()) : Serializable {
     var dominanceFrontiers = HashSet<Node>()
 
     fun idom() = this.doms.filter { it.id != this.id }.minBy { it.id } ?: this
-    fun children(): List<Node> = this.outEdges.map { it.node }.filter { it != null } as List<Node>
-    fun parents(): List<Node> = this.inEdges.map { it.node }.filter { it != null } as List<Node>
-    fun fwParents(): List<Node> = this.inEdges.filter { it.orientation == Edge.Orientation.FORWARD }.map { it.node }.filter { it != null } as List<Node>
+    fun children(): List<Node> = this.outEdges.mapNotNull { it.node }
+    fun parents(): List<Node> = this.inEdges.mapNotNull { it.node }
+    fun fwParents(): List<Node> = this.inEdges.filter { it.orientation == Edge.Orientation.FORWARD }.mapNotNull { it.node }
     fun resetColors() {
         color = Color.WHITE
         this.children().filter { it.color != Color.WHITE }.forEach { it.resetColors() }
@@ -57,17 +55,6 @@ class Node(var outEdges: List<Edge> = emptyList()) : Serializable {
 
     override fun hashCode(): Int {
         return id
-    }
-
-    fun clone(): Node {
-        val baos = ByteArrayOutputStream()
-        val oos = ObjectOutputStream(baos)
-        oos.writeObject(this)
-        oos.close()
-        val ois = ObjectInputStream(ByteArrayInputStream(baos.toByteArray()))
-        val o = ois.readObject()
-        ois.close()
-        return o as Node
     }
 
     enum class Color {

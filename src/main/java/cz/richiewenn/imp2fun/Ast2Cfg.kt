@@ -1,10 +1,9 @@
 package cz.richiewenn.imp2fun
 
-import com.github.javaparser.ast.stmt.ExpressionStmt
-import com.github.javaparser.ast.Node as AstNode
 import cz.richiewenn.imp2fun.cfg.*
 import cz.richiewenn.imp2fun.expressions.JumpExpr
 import cz.richiewenn.imp2fun.expressions.OtherwiseExpr
+import com.github.javaparser.ast.Node as AstNode
 
 object Ast2Cfg {
     fun toCFG(nodes: List<AstNode>): Node {
