@@ -5,11 +5,11 @@ import cz.richiewenn.imp2fun.cfg.Node
 import cz.richiewenn.imp2fun.expressions.PhiExpression
 import cz.richiewenn.imp2fun.expressions.VarAssignExpr
 import cz.richiewenn.imp2fun.expressions.VarDefExpr
-import cz.richiewenn.imp2fun.expressions.VarUsageExpr
 
 object PhiFiller {
 
-    fun goDownAndRemarkUsagesUntilAssignment(node: Node, originalVariableName: String, newVariableName: String) {
+    fun goDownAndRemarkUsagesUntilNextAssignment(node: Node, originalVariableName: String, newVariableName: String) {
+
         fun goDown(currentNode: Node?) {
             if (currentNode == null) {
                 return
@@ -64,7 +64,7 @@ object PhiFiller {
                 val newName = originalName + "_" + i
                 entry.key.outEdges
                     .mapNotNull { it.node }
-                    .forEach { goDownAndRemarkUsagesUntilAssignment(it, originalName, newName) }
+                    .forEach { goDownAndRemarkUsagesUntilNextAssignment(it, originalName, newName) }
                 entry.value.name = newName
             }
 
