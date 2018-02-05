@@ -3,8 +3,8 @@ package cz.richiewenn.imp2fun.filters
 import com.github.javaparser.JavaParser
 import cz.richiewenn.imp2fun.*
 import cz.richiewenn.imp2fun.cfg.Node
+import cz.richiewenn.imp2fun.haskell.ast.Ast
 import com.github.javaparser.ast.Node as AstNode
-
 
 val astPreprocessor: (String) -> AstNode = {
     val cu = JavaParser.parse(it)
@@ -32,6 +32,14 @@ val printDot: (Node) -> (Node) = {
     println(DotConverter().convert(it).joinToString(System.lineSeparator()))
     it
 }
+val convertToHaskellAst: (Node) -> Ast = {
+    HaskellAstConverter.convert(it)
+}
+val printAstDot: (Ast) -> (Ast) = {
+    println("---------")
+    println(DotConverter().convert(it).joinToString(System.lineSeparator()))
+    it
+}
 
 private operator fun Node.plus(f: (Node) -> Node): Node {
     return f(this)
@@ -39,15 +47,23 @@ private operator fun Node.plus(f: (Node) -> Node): Node {
 private operator fun AstNode.plus(f: (AstNode) -> Node): Node {
     return f(this)
 }
+private operator fun Node.plus(f: (Node) -> Ast): Ast {
+    return f(this)
+}
+private operator fun Ast.plus(f: (Ast) -> Ast): Ast {
+    return f(this)
+}
 
 fun main(args: Array<String>) {
     astPreprocessor(simple) +
     cfgPreprocessor +
-    printDot +
+//    printDot +
     fillInEdges +
     removeJumps +
     dominanceFrontiers +
     phiFunctions +
-    printDot
+    printDot +
+    convertToHaskellAst +
+    printAstDot
 }
 

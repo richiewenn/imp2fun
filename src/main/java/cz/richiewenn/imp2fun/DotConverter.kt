@@ -1,6 +1,9 @@
 package cz.richiewenn.imp2fun
 
 import cz.richiewenn.imp2fun.cfg.Node
+import cz.richiewenn.imp2fun.haskell.ast.Ast
+import cz.richiewenn.imp2fun.haskell.ast.AstLeaf
+import cz.richiewenn.imp2fun.haskell.ast.AstNode
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -34,6 +37,19 @@ class DotConverter {
             )
         }
         return result
+    }
+
+    fun convert(ast: Ast): List<String> {
+        return when(ast) {
+            is AstNode -> ast.children.flatMap { this.convert(it) } + ast.children.map { "${ast.id}->${it.id}${System.lineSeparator()}${ast.id} [label=${ast.print()}]${
+            if (it is AstLeaf) {
+                "${System.lineSeparator()}${it.id} [label=${it.print()}]"
+            } else {
+                ""
+            }
+            }" }
+            else -> emptyList()
+        }
     }
 
 }
