@@ -8,4 +8,8 @@ data class IfElseExpressionAstNode(
     listOf(condition, ifBody, elseBody)
 ) {
     override fun print() = "\"${this.javaClass.simpleName}\""
+    override fun printCode() = """
+        if ${condition.printCode()} = ${ifBody.printCode()}
+        else = ${elseBody.printCode()}
+""".trimIndent()
 }

@@ -55,7 +55,7 @@ private operator fun Ast.plus(f: (Ast) -> Ast): Ast {
 }
 
 fun main(args: Array<String>) {
-    astPreprocessor(simple) +
+    val result = astPreprocessor(simple) +
     cfgPreprocessor +
 //    printDot +
     fillInEdges +
@@ -65,5 +65,8 @@ fun main(args: Array<String>) {
     printDot +
     convertToHaskellAst +
     printAstDot
+
+    println("-----------------------")
+    println(result.printCode())
 }
 

@@ -24,9 +24,7 @@ object HaskellAstConverter {
             return listOf(AstLeaf())
         }
         return if (node.outEdges.size == 2 && node.outEdges[0].exp is OtherwiseExpr && node.outEdges[1].exp is BinaryExpr) {
-            listOf(IfElseExpressionAstNode(mapExpression(node.outEdges[0].exp), mapNode(node.outEdges[0].node)[0], AstLeaf())) + mapNode(node.outEdges[0].node)
-        } else if (node.outEdges.size == 2 && node.outEdges[1].exp is OtherwiseExpr && node.outEdges[0].exp is BinaryExpr) {
-            listOf(IfElseExpressionAstNode(mapExpression(node.outEdges[1].exp), mapNode(node.outEdges[1].node)[0], AstLeaf())) + mapNode(node.outEdges[1].node)
+            listOf(IfElseExpressionAstNode(mapExpression(node.outEdges[1].exp), mapNode(node.outEdges[1].node)[0], AstLeaf())) + mapNode(node.outEdges[0].node)
         } else {
 //            node.outEdges.flatMap { mapEdge(it) } + node.dominanceFrontiers.flatMap { mapNode(it) }
             node.outEdges.flatMap { mapEdge(it) }
@@ -50,10 +48,10 @@ object HaskellAstConverter {
         return when (exp) {
             is ConstantExpr -> ConstantAstLeaf(exp.value)
             is VarAssignExpr -> ArgumentlessFunctionAstNode((exp.target as VarDefExpr).name, mapExpression(exp.value))
-//                    is VarDefExpr ->
+//            is VarDefExpr ->
             is BinaryExpr -> EqAstNode(mapExpression(exp.left), mapExpression(exp.right)) // TODO: this is just equals, do the same for compare
             is OtherwiseExpr -> AstLeaf() //ArgumentlessFunctionAstNode()
-            is VarUsageExpr -> AstLeaf()
+            is VarUsageExpr -> FunctionCallAstLeaf(exp.variableName, emptyList())
 //                    is Operator ->
             is PhiExpression -> FunctionAstNode("phi", exp.vars.map { FunctionCallAstLeaf(it, emptyList()) }, AstLeaf())
             else -> AstLeaf()

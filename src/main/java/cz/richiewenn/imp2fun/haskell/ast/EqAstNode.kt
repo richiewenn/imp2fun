@@ -7,4 +7,5 @@ data class EqAstNode(
     listOf(left, right)
 ) {
     override fun print() = "\"${toString()}\""
+    override fun printCode() = "${left.printCode()} == ${right.printCode()}"
 }
