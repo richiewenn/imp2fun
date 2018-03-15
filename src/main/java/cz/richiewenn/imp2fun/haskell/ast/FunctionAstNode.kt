@@ -4,16 +4,22 @@ import java.lang.System.lineSeparator
 
 data class FunctionAstNode(
     val name: String,
-    val args: List<Ast>,
+    val args: List<String>,
     val body: Ast
 ) : AstNode(
-    listOf(body) + args
+    listOf(body)
 ) {
-    override fun print() = "\"${this.javaClass.simpleName} $name\""
+    override fun print() = "fun $name(${args.joinToString(", ")})"
     override fun printCode() = """
-        $name ${args.joinToString(lineSeparator()) { "-> ${it.printCode()}" }}
+        $name ${args.joinToString(lineSeparator()) { "-> ${it}" }}
         $name = ${body.printCode()}
     """.trimIndent()
+    override fun equals(other: Any?): Boolean {
+        return other != null && other is FunctionAstNode && other.name == this.name
+    }
+    override fun hashCode(): Int {
+        return this.name.hashCode()
+    }
 }
 
 data class ArgumentlessFunctionAstNode(
@@ -22,7 +28,7 @@ data class ArgumentlessFunctionAstNode(
 ) : AstNode(
     listOf(body)
 ) {
-    override fun print() = "\"${this.javaClass.simpleName} $name\""
+    override fun print() = "fun $name()"
     override fun printCode() = """
         $name = ${body.printCode()}
     """.trimIndent()
@@ -30,10 +36,11 @@ data class ArgumentlessFunctionAstNode(
 
 data class FunctionCallAstLeaf(
     val name: String,
-    val args: List<Ast>
+    val args: List<String>
 ) : AstLeaf() {
-    override fun print() = "\"${this.javaClass.simpleName} $name\""
+    constructor(name: String, args: String) : this(name, listOf(args))
+    override fun print() = "$name($args)"
     override fun printCode() = """
-        ($name ${args.map { it.printCode() }.joinToString(" ")})
+        ($name ${args.map { it }.joinToString(" ")})
     """.trimIndent()
 }

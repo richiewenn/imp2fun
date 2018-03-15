@@ -14,6 +14,7 @@ interface Ast {
     fun print(): String
     fun printCode(): String
     fun getDotLinkSources(): Node
+    operator fun plus(list: List<Ast>) = listOf(this)+list
 }
 
 open class AstNode(
