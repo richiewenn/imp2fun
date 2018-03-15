@@ -13,3 +13,18 @@ data class IfElseExpressionAstNode(
         else = ${elseBody.printCode()}
 """.trimIndent()
 }
+
+data class IfElseAssignmentAstNode(
+    val condition: Ast,
+    val target: String,
+    val ifValue: String,
+    val elseValue: String
+): AstNode(
+    listOf(condition)
+) {
+    override fun print() = "\"${this.javaClass.simpleName}\""
+    override fun printCode() = """
+        $target -> if ${condition.printCode()} = $ifValue
+                   else = $elseValue
+""".trimIndent()
+}

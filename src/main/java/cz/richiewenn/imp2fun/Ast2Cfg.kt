@@ -15,12 +15,16 @@ object Ast2Cfg {
                 "UnaryExpr", "BinaryExpr", "VariableDeclarationExpr", "AssignExpr",
                 "ExpressionStmt" -> Node(Edge(Node(), ExpressionMapper.map(node)))
                 "IfStmt" -> ifToCFG(node)
-                // TODO: ElseStmt
+                "ElseStmt" -> elseToCFG(node)
                 "BlockStmt" -> toCFG(node.childNodes)
                 "ReturnStmt" -> Node()
                 else -> Node()
             }
         }.reduce { left, right -> left.plusLeft(right)}
+    }
+
+    private fun elseToCFG(node: com.github.javaparser.ast.Node): Node {
+        TODO("not implemented")
     }
 
     fun toCFG(node: AstNode) = toCFG(listOf(node))

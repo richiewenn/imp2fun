@@ -4,6 +4,11 @@ import com.github.javaparser.JavaParser
 import cz.richiewenn.imp2fun.*
 import cz.richiewenn.imp2fun.cfg.Node
 import cz.richiewenn.imp2fun.haskell.ast.Ast
+import guru.nidi.graphviz.engine.Format
+import guru.nidi.graphviz.engine.Graphviz
+import guru.nidi.graphviz.model.Factory.graph
+import guru.nidi.graphviz.model.Factory.node
+import java.io.File
 import com.github.javaparser.ast.Node as AstNode
 
 val astPreprocessor: (String) -> AstNode = {
@@ -33,11 +38,16 @@ val printDot: (Node) -> (Node) = {
     it
 }
 val convertToHaskellAst: (Node) -> Ast = {
+    HaskellAstConverter.convertV2(it)
     HaskellAstConverter.convert(it)
 }
 val printAstDot: (Ast) -> (Ast) = {
     println("---------")
-    println(DotConverter().convert(it).joinToString(System.lineSeparator()))
+//    val graph = DotConverter().convertToGraph(it)
+    val link = it.getDotLinkSources()
+//    val links = listOf(node("1").link(node("2"), node("3")))
+    val graph = graph().directed().with(link)
+    Graphviz.fromGraph(graph).width(1800).render(Format.PNG).toFile(File("./graph.png"))
     it
 }
 
@@ -70,3 +80,4 @@ fun main(args: Array<String>) {
     println(result.printCode())
 }
 
+// Argumenty funkci jsou veci v phi funkcich
