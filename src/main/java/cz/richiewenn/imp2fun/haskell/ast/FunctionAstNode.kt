@@ -11,8 +11,7 @@ data class FunctionAstNode(
 ) {
     override fun print() = "fun $name(${args.joinToString(", ")})"
     override fun printCode() = """
-        $name ${args.joinToString(lineSeparator()) { "-> ${it}" }}
-        $name = ${body.printCode()}
+$name ${args.joinToString(lineSeparator())} = ${body.printCode()}
     """.trimIndent()
     override fun equals(other: Any?): Boolean {
         return other != null && other is FunctionAstNode && other.name == this.name
@@ -29,9 +28,7 @@ data class ArgumentlessFunctionAstNode(
     listOf(body)
 ) {
     override fun print() = "fun $name()"
-    override fun printCode() = """
-        $name = ${body.printCode()}
-    """.trimIndent()
+    override fun printCode() = "$name = ${body.printCode()}"
 }
 
 data class FunctionCallAstLeaf(
@@ -41,6 +38,6 @@ data class FunctionCallAstLeaf(
     constructor(name: String, args: String) : this(name, listOf(args))
     override fun print() = "$name($args)"
     override fun printCode() = """
-        ($name ${args.map { it }.joinToString(" ")})
+($name ${args.map { it }.joinToString(" ")})
     """.trimIndent()
 }

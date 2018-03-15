@@ -15,9 +15,9 @@ data class LetRec(
 
     override fun printCode(): String {
         return """
-            let $variableName = ${variableAssignment.printCode()} in
-            ${inBody.printCode()}
-        """.trimIndent()
+let $variableName = ${variableAssignment.printCode()} in
+${inBody.printCode()}
+        """.trim()
     }
 
 }

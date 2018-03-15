@@ -27,7 +27,7 @@ open class AstNode(
     }
     override fun print() = "\"${this.javaClass.simpleName}\""
     override fun printCode() = """
-        ${this.children.joinToString(lineSeparator()) { it.printCode() }}
+${this.children.joinToString(lineSeparator()) { it.printCode() }}
 """.trimIndent()
 }
 

@@ -22,7 +22,7 @@ object HaskellAstConverter {
             }
 
             val nodes = mapNode(currentRoot) // This must be executed early so the globalFunctions are populated
-            return AstNode(globalFunctions.toSet().toList()+nodes)
+            return AstNode(globalFunctions.toSet().toList()+MainNode(nodes.first()))
         }
         return inner(root)
     }

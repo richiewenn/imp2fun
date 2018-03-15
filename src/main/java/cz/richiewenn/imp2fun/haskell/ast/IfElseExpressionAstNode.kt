@@ -9,8 +9,9 @@ data class IfElseExpressionAstNode(
 ) {
     override fun print() = "\"${this.javaClass.simpleName}\""
     override fun printCode() = """
-        if ${condition.printCode()} = ${ifBody.printCode()}
-        else = ${elseBody.printCode()}
+if ${condition.printCode()}
+  then ${ifBody.printCode()}
+  else ${elseBody.printCode()}
 """.trimIndent()
 }
 
@@ -24,7 +25,7 @@ data class IfElseAssignmentAstNode(
 ) {
     override fun print() = "\"${this.javaClass.simpleName}\""
     override fun printCode() = """
-        $target -> if ${condition.printCode()} = $ifValue
-                   else = $elseValue
+$target -> if ${condition.printCode()} = $ifValue
+else = $elseValue
 """.trimIndent()
 }
