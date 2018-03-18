@@ -1,8 +1,11 @@
 package cz.richiewenn.imp2fun
 
+import com.github.javaparser.ast.expr.NameExpr
+import com.github.javaparser.ast.stmt.ReturnStmt
 import cz.richiewenn.imp2fun.cfg.*
 import cz.richiewenn.imp2fun.expressions.JumpExpr
 import cz.richiewenn.imp2fun.expressions.OtherwiseExpr
+import cz.richiewenn.imp2fun.expressions.ReturnExpr
 import com.github.javaparser.ast.Node as AstNode
 
 object Ast2Cfg {
@@ -17,7 +20,7 @@ object Ast2Cfg {
                 "IfStmt" -> ifToCFG(node)
                 "ElseStmt" -> elseToCFG(node)
                 "BlockStmt" -> toCFG(node.childNodes)
-                "ReturnStmt" -> Node()
+                "ReturnStmt" -> Node(Edge(Node(), ReturnExpr(((node as ReturnStmt).expression.orElseThrow {RuntimeException()} as NameExpr).nameAsString )))
                 else -> Node()
             }
         }.reduce { left, right -> left.plusLeft(right)}

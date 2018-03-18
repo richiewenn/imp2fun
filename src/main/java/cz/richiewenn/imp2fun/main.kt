@@ -42,6 +42,7 @@ public class Simple {
             a = 2;
         }
         int b = a;
+        return b;
     }
 }
         """.trimIndent()

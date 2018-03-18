@@ -52,6 +52,7 @@ object HaskellAstConverter {
         return listOf(when (exp) {
             is ConstantExpr -> ConstantAstLeaf(exp.value)
             //(exp.target as VarDefExpr).name, mapExpression(exp.value)
+            is ReturnExpr -> FunctionCallAstLeaf(exp.name, emptyList())
             is VarAssignExpr -> if(nodes.isNotEmpty()) {
                 LetRec((exp.target as VarDefExpr).name, mapExpression(exp.value), nodes.first())
             } else {
