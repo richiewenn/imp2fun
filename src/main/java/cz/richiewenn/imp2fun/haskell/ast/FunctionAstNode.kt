@@ -36,7 +36,7 @@ data class FunctionCallAstLeaf(
     val args: List<String>
 ) : AstLeaf() {
     constructor(name: String, args: String) : this(name, listOf(args))
-    override fun print() = "$name($args)"
+    override fun print() = if(args.isNotEmpty()) "$name(${args.joinToString(", ")})" else name
     override fun printCode() = """
 ($name ${args.map { it }.joinToString(" ")})
     """.trimIndent()

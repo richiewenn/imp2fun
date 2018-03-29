@@ -28,16 +28,23 @@ object DominanceFrontiers {
 
     fun fill(node: Node): Node {
         remarkIds(node)
+        val iHaveBeenThere = HashSet<Int>()
         depthFirstSearch(node) { b ->
+            fun searchDF(runner: Node) {
+                if(!b.doms.contains(runner)) {
+                    if(runner == b) {
+                        return
+                    }
+                    runner.dominanceFrontiers.add(b)
+                    runner.fwParents().forEach { searchDF(it) }
+                }
+            }
             if (b.inEdges.size >= 2) {
                 for (p in b.parents()) {
-                    fun searchDF(runner: Node) {
-                        if(!b.doms.contains(runner)) {
-                            runner.dominanceFrontiers.add(b)
-                            runner.fwParents().forEach { searchDF(it) }
-                        }
+                    if(!iHaveBeenThere.contains(p.id)) {
+                        iHaveBeenThere.add(p.id)
+                        searchDF(p)
                     }
-                    searchDF(p)
                 }
             }
         }

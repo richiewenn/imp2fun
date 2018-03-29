@@ -6,6 +6,11 @@ import cz.richiewenn.imp2fun.expressions.*
 import cz.richiewenn.imp2fun.haskell.ast.*
 import java.util.concurrent.LinkedBlockingQueue
 
+fun getOriginalName(variable: String): String {
+    val suffixRegex = Regex("_\\d*\$")
+    return variable.replace(suffixRegex, "")
+}
+
 object HaskellAstConverter {
     val globalFunctions = ArrayList<FunctionAstNode>()
 
@@ -15,7 +20,9 @@ object HaskellAstConverter {
         }
     }
 
+    var iHaveBeenThere = HashSet<Int>()
     fun convert(root: Node): Ast {
+        iHaveBeenThere = HashSet()
         fun inner(currentRoot: Node?): Ast {
             if (currentRoot == null) {
                 return AstLeaf()
@@ -26,10 +33,12 @@ object HaskellAstConverter {
         }
         return inner(root)
     }
+
     fun mapNode(node: Node?): List<Ast> {
-        if (node == null) {
+        if (node == null || iHaveBeenThere.contains(node.id)) {
             return listOf(AstLeaf())
         }
+        iHaveBeenThere.add(node.id)
         return if (node.outEdges.size == 2 && node.outEdges[0].exp is OtherwiseExpr && node.outEdges[1].exp is BinaryExpr) {
             IfElseExpressionAstNode(
                 condition = mapExpression(node.outEdges[1].exp),
@@ -41,10 +50,6 @@ object HaskellAstConverter {
         }
     }
 
-//    fun extractIfBodyAssignments(node: Node): List<Ast> {
-//        val n = node.outEdges[1].node
-//        n?.outEdges[0].exp
-//    }
 
     fun mapEdge(edge: Edge): List<Ast> {
         val exp = edge.exp
@@ -68,6 +73,16 @@ object HaskellAstConverter {
                 FunctionCallAstLeaf("phi_${edge.id}", args = exp.vars[index])
 //                FunctionCallAstLeaf("phi_${edge.id}", args = findLatestDefinition(exp.target, edge.node))
             }
+            is PhiExpressions -> {
+                val f = FunctionAstNode("phi_${edge.id}", exp.phis.map { it.target }, nodes.first())
+                this.globalFunctions.add(f)
+                val index = this.globalFunctions.count { it == f }-1
+//                if(index >= exp.phis.size) { // some stuff runs more times then it should so when it already run, we can just skip
+//                    return emptyList()
+//                }
+                FunctionCallAstLeaf("phi_${edge.id}", args = exp.phis.map { it.vars[index] }.toList())
+            }
+
 //            is BinaryExpr -> EqAstNode(mapExpression(exp.left), mapExpression(exp.right)) // TODO: this is just equals, do the same for compare
 //            is OtherwiseExpr -> AstLeaf() //ArgumentlessFunctionAstNode()
 //            is VarUsageExpr -> AstLeaf()
@@ -84,10 +99,6 @@ object HaskellAstConverter {
 
         fun search(target: String): String {
             val currentNode = queue.poll() ?: throw TODO() // I mean, this should not happen, I think...
-            fun getOriginalName(variable: String): String {
-                val suffixRegex = Regex("_\\d*\$")
-                return variable.replace(suffixRegex, "")
-            }
             fun getOriginalNameFromExpr(variable: Expr): String {
                 return getOriginalName(when(variable) {
                     is VarDefExpr -> variable.name
@@ -122,7 +133,7 @@ object HaskellAstConverter {
             is ConstantExpr -> ConstantAstLeaf(exp.value)
             is VarAssignExpr -> ArgumentlessFunctionAstNode((exp.target as VarDefExpr).name, mapExpression(exp.value))
 //            is VarDefExpr ->
-            is BinaryExpr -> EqAstNode(mapExpression(exp.left), mapExpression(exp.right)) // TODO: this is just equals, do the same for compare
+            is BinaryExpr -> BinaryAstNode(mapExpression(exp.left), mapExpression(exp.right), exp.operator)
             is OtherwiseExpr -> AstLeaf() //ArgumentlessFunctionAstNode()
             is VarUsageExpr -> FunctionCallAstLeaf(exp.variableName, emptyList())
 //                    is Operator ->

@@ -1,11 +1,14 @@
 package cz.richiewenn.imp2fun.haskell.ast
 
-data class EqAstNode(
+import cz.richiewenn.imp2fun.expressions.Operator
+
+data class BinaryAstNode(
     val left: Ast,
-    val right: Ast
+    val right: Ast,
+    val operator: Operator
 ): AstNode(
     listOf(left, right)
 ) {
-    override fun print() = "\"${toString()}\""
-    override fun printCode() = "${left.printCode()} == ${right.printCode()}"
+    override fun print() = "${left.print()} ${operator.value} ${right.print()}"
+    override fun printCode() = "${left.printCode()} ${operator.value} ${right.printCode()}"
 }

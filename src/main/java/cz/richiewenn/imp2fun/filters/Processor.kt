@@ -65,11 +65,11 @@ private operator fun Ast.plus(f: (Ast) -> Ast): Ast {
 }
 
 fun main(args: Array<String>) {
-    val result = astPreprocessor(simple) +
+    val result = astPreprocessor(forCycle) +
     cfgPreprocessor +
-//    printDot +
     fillInEdges +
     removeJumps +
+    printDot +
     dominanceFrontiers +
     phiFunctions +
     printDot +

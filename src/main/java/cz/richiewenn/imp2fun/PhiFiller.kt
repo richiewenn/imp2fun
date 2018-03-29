@@ -3,6 +3,7 @@ package cz.richiewenn.imp2fun
 import cz.richiewenn.imp2fun.cfg.Edge
 import cz.richiewenn.imp2fun.cfg.Node
 import cz.richiewenn.imp2fun.expressions.PhiExpression
+import cz.richiewenn.imp2fun.expressions.PhiExpressions
 import cz.richiewenn.imp2fun.expressions.VarAssignExpr
 import cz.richiewenn.imp2fun.expressions.VarDefExpr
 
@@ -38,10 +39,11 @@ object PhiFiller {
             val defs: MutableMap<Node, VarDefExpr> = HashMap()
             fun goUpper(n: Node) {
                 n.inEdges.forEach {
-                    if (it.node != null && it.node?.dominanceFrontiers?.contains(searchedNode)!!) {
+                    val containsDF = it.node?.dominanceFrontiers?.contains(searchedNode)
+                    if (it.node != null && containsDF != null && containsDF) {
                         goUpper(it.node!!)
                     }
-                    val expr = it.node?.outEdges?.first { it.node == n }?.exp
+                    val expr = it.node?.outEdges?.firstOrNull { it.node == n }?.exp
                     if (expr is VarAssignExpr) {
                         if (expr.target is VarDefExpr) {
                             defs[it.node!!] = expr.target
@@ -54,29 +56,34 @@ object PhiFiller {
             if (args.isEmpty()) {
                 return@depthFirstSearch
             }
-            val originalVariableName = args.values.first().name
+            val originalVariableNames = args.values.map { it.name }.distinct()
             val phiNode = Node(searchedNode.outEdges)
-            val argNames = args.values.mapIndexed { i, it -> it.name + "_" + i }.toTypedArray()
-            val phiExpr = PhiExpression(args.values.first().name + "_" + argNames.size, argNames)
+            val argNames = args.values.groupBy { it.name }.values.map { lst -> lst.mapIndexed { i, arg -> arg.name + "_" + i }.toTypedArray()}
+            val phiExpr = PhiExpressions(args.values.groupBy { it.name }.values.map {
+                lst -> PhiExpression( lst.first().name + "_" + lst.size, lst.mapIndexed { index, arg -> arg.name + "_" + index}.toTypedArray())
+            })
             val phis = Edge(phiNode, phiExpr)
-            args.entries.forEachIndexed { i, entry ->
+            args.entries.groupBy { it.value.name }.values.forEach { lst -> lst.forEachIndexed { i, entry ->
                 val originalName = entry.value.name
-                val newName = originalName + "_" + i
+                val phi = phiExpr.phis.find { getOriginalName(it.target) == originalName }!!
+                val newName = phi.vars[i]
                 entry.key.outEdges
                     .mapNotNull { it.node }
                     .forEach { goDownAndRemarkUsagesUntilNextAssignment(it, originalName, newName) }
                 entry.value.name = newName
-            }
+            }}
 
+            val iHaveBeenThere = HashSet<Int>()
             fun goDown(n: Node?) {
-                if (n == null) {
+                if (n == null || iHaveBeenThere.contains(n.id)) {
                     return
                 }
+                iHaveBeenThere.add(n.id)
                 n.outEdges.forEach {
                     val varUsageExprs = it.exp.getVarUsageExprs()
                     varUsageExprs.forEach {
-                        if (it.variableName == originalVariableName) {
-                            it.variableName = phiExpr.target
+                        if (originalVariableNames.contains(getOriginalName(it.variableName))) {
+                            it.variableName = phiExpr.phis.find { phi -> getOriginalName(phi.target) == getOriginalName(it.variableName) }?.target!!
                         }
                     }
 

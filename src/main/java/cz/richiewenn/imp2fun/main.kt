@@ -34,6 +34,18 @@ public class Prime {
     }
 }
         """.trimIndent()
+
+val forCycle = """
+public class Prime {
+    public int primes() {
+        int count = 0;
+        for(int i=0; i < 5; i = i + 1) {
+            count = count + 1;
+        }
+        return count;
+    }
+}
+        """.trimIndent()
 val simple = """
 public class Simple {
     public int simple() {
@@ -49,8 +61,8 @@ public class Simple {
 
 fun main(args: Array<String>) {
 
-    val cu = JavaParser.parse(simple)
-//    val cu = JavaParser.parse(fibonacci)
+//    val cu = JavaParser.parse(simple)
+    val cu = JavaParser.parse(fibonacci)
 //    val cu = JavaParser.parse(primes)
     val method = cu.findRootNode().childNodes[0].childNodes[1]
     val methodName = method.childNodes[0]

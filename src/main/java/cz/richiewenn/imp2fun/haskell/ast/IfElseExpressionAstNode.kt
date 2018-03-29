@@ -7,7 +7,7 @@ data class IfElseExpressionAstNode(
 ): AstNode(
     listOf(condition, ifBody, elseBody)
 ) {
-    override fun print() = "\"${this.javaClass.simpleName}\""
+    override fun print() = "If Then Else"
     override fun printCode() = """
 if ${condition.printCode()}
   then ${ifBody.printCode()}

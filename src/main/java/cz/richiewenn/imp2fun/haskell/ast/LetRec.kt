@@ -1,7 +1,5 @@
 package cz.richiewenn.imp2fun.haskell.ast
 
-import guru.nidi.graphviz.model.LinkSource
-
 data class LetRec(
     val variableName: String,
     var variableAssignment: Ast, // FunctionCallAstLeaf or ConstantAstLeaf
@@ -14,10 +12,8 @@ data class LetRec(
     }
 
     override fun printCode(): String {
-        return """
-let $variableName = ${variableAssignment.printCode()} in
-${inBody.printCode()}
-        """.trim()
+        return """let $variableName = ${variableAssignment.printCode()} in
+  ${inBody.printCode()}"""
     }
 
 }
