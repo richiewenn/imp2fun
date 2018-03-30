@@ -37,7 +37,7 @@ data class ArgumentlessFunctionAstNode(
 
 data class FunctionCallAstLeaf(
     val name: String,
-    val args: List<String>
+    var args: List<String>
 ) : AstLeaf() {
     constructor(name: String, args: String) : this(name, listOf(args))
     constructor(name: String) : this(name, emptyList())

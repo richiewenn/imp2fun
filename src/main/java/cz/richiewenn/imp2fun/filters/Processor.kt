@@ -38,7 +38,7 @@ val printDot: (Node) -> (Node) = {
     it
 }
 val convertToHaskellAst: (Node) -> Ast = {
-    HaskellAstConverter.convertV2(it)
+//    HaskellAstConverter.convertV2(it)
     HaskellAstConverter.convert(it)
 }
 val printAstDot: (Ast) -> (Ast) = {

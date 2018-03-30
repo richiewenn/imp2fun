@@ -10,11 +10,12 @@ import cz.richiewenn.imp2fun.expressions.VarDefExpr
 object PhiFiller {
 
     fun goDownAndRemarkUsagesUntilNextAssignment(edge: Edge, originalVariableName: String, newVariableName: String) {
-
+        val iHaveBeenThere = HashSet<Edge>()
         fun goDown(currentEdge: Edge?) {
-            if (currentEdge == null || currentEdge.exp is VarAssignExpr) {
+            if (currentEdge == null || currentEdge.exp is VarAssignExpr || iHaveBeenThere.contains(edge)) {
                 return
             }
+            iHaveBeenThere.add(edge)
 //            currentEdge.outEdges
 //                .filter { it.exp !is VarAssignExpr }
 //                .forEach {

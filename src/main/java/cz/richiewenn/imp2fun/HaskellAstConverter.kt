@@ -15,12 +15,6 @@ object HaskellAstConverter {
     val globalFunctions = ArrayList<FunctionAstNode>()
     val phiCalls = ArrayList<Pair<FunctionCallAstLeaf, Expr>>()
 
-    fun convertV2(root: Node) {
-        depthFirstSearch(root) { node ->
-            println(node.outEdges.filter { it.exp is PhiExpression }.map { "function ${it.exp} ${node.doms}" })
-        }
-    }
-
     var iHaveBeenThere = HashSet<Int>()
     fun convert(root: Node): Ast {
         iHaveBeenThere = HashSet()
@@ -36,6 +30,29 @@ object HaskellAstConverter {
                     .map {
                         it.maxBy { it.size }!!
                     }
+            // Go up and find what argument names should be used to call this phi functions
+            fun getVarName(parent: Ast?, arg: String): String? {
+                if (parent == null) {
+                    return null
+                }
+                if (parent is LetRec) {
+                    if (getOriginalName(parent.variableName) == getOriginalName(arg)) {
+                        return parent.variableName
+                    }
+                }
+                return null
+            }
+            this.phiCalls.forEach {phi ->
+                phi.first.args = phi.first.args.map { arg ->
+                    val parent = phi.first.parent
+                    val name = getVarName(parent, arg)
+                    if(name != null) {
+                        return@map name
+                    }
+                    return@map getVarName(parent?.parent, arg)
+                }.filterNotNull()
+            }
+
             return AstNode(gf+MainNode(nodes.first()))
         }
         return inner(root)
@@ -83,7 +100,7 @@ object HaskellAstConverter {
                     return emptyList()
                 }
                 val phiFun = FunctionCallAstLeaf("phi_${edge.id}", args = exp.vars[index])
-//                this.phiCalls.add(Pair(phiFun, exp))
+                this.phiCalls.add(Pair(phiFun, exp))
                 phiFun
 //                FunctionCallAstLeaf("phi_${edge.id}", args = findLatestDefinition(exp.target, edge.node))
             }
@@ -94,8 +111,9 @@ object HaskellAstConverter {
                 if(index >= exp.phis.size) { // some stuff runs more times then it should so when it already run, we can just skip
                     return emptyList()
                 }
-                FunctionCallAstLeaf("phi_${edge.id}", args = exp.phis.map { it.vars[index] }.toList())
-//                this.phiCalls.add(Pair(phiFun, exp))
+                val phiFun = FunctionCallAstLeaf("phi_${edge.id}", args = exp.phis.map { it.vars[index] }.toList())
+                this.phiCalls.add(Pair(phiFun, exp))
+                phiFun
             }
 
 //            is BinaryExpr -> EqAstNode(mapExpression(exp.left), mapExpression(exp.right)) // TODO: this is just equals, do the same for compare
