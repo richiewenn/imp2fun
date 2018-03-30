@@ -13,6 +13,7 @@ fun getOriginalName(variable: String): String {
 
 object HaskellAstConverter {
     val globalFunctions = ArrayList<FunctionAstNode>()
+    val phiCalls = ArrayList<Pair<FunctionCallAstLeaf, Expr>>()
 
     fun convertV2(root: Node) {
         depthFirstSearch(root) { node ->
@@ -50,11 +51,12 @@ object HaskellAstConverter {
         }
         iHaveBeenThere.add(node.id)
         return if (node.outEdges.size == 2 && node.outEdges[0].exp is OtherwiseExpr && node.outEdges[1].exp is BinaryExpr) {
+            val otherwise = mapNode(node.outEdges[0].node)
             IfElseExpressionAstNode(
                 condition = mapExpression(node.outEdges[1].exp),
                 ifBody = mapNode(node.outEdges[1].node)[0],
-                elseBody = mapNode(node.outEdges[0].node)[0]
-            ) + mapNode(node.outEdges[0].node)
+                elseBody = otherwise[0]
+            ) + otherwise
         } else {
             node.outEdges.flatMap { mapEdge(it) }
         }
@@ -80,17 +82,20 @@ object HaskellAstConverter {
                 if(index >= exp.vars.size) { // some stuff runs more times then it should so when it already run, we can just skip
                     return emptyList()
                 }
-                FunctionCallAstLeaf("phi_${edge.id}", args = exp.vars[index])
+                val phiFun = FunctionCallAstLeaf("phi_${edge.id}", args = exp.vars[index])
+//                this.phiCalls.add(Pair(phiFun, exp))
+                phiFun
 //                FunctionCallAstLeaf("phi_${edge.id}", args = findLatestDefinition(exp.target, edge.node))
             }
             is PhiExpressions -> {
                 val f = FunctionAstNode("phi_${edge.id}", exp.phis.map { it.target }, nodes.first())
                 this.globalFunctions.add(f)
                 val index = this.globalFunctions.count { it == f }-1
-//                if(index >= exp.phis.size) { // some stuff runs more times then it should so when it already run, we can just skip
-//                    return emptyList()
-//                }
+                if(index >= exp.phis.size) { // some stuff runs more times then it should so when it already run, we can just skip
+                    return emptyList()
+                }
                 FunctionCallAstLeaf("phi_${edge.id}", args = exp.phis.map { it.vars[index] }.toList())
+//                this.phiCalls.add(Pair(phiFun, exp))
             }
 
 //            is BinaryExpr -> EqAstNode(mapExpression(exp.left), mapExpression(exp.right)) // TODO: this is just equals, do the same for compare

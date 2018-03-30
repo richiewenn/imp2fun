@@ -9,34 +9,33 @@ import cz.richiewenn.imp2fun.expressions.VarDefExpr
 
 object PhiFiller {
 
-    fun goDownAndRemarkUsagesUntilNextAssignment(node: Node, originalVariableName: String, newVariableName: String) {
+    fun goDownAndRemarkUsagesUntilNextAssignment(edge: Edge, originalVariableName: String, newVariableName: String) {
 
-        fun goDown(currentNode: Node?) {
-            if (currentNode == null) {
+        fun goDown(currentEdge: Edge?) {
+            if (currentEdge == null || currentEdge.exp is VarAssignExpr) {
                 return
             }
-            currentNode.outEdges
-                .filter { it.exp !is VarAssignExpr }
-                .forEach {
-                    val varUsageExprs = it.exp.getVarUsageExprs()
-                    varUsageExprs.forEach {
-                        if (it.variableName == originalVariableName) {
-                            it.variableName = newVariableName
-                        }
-                    }
-                    goDown(it.node)
+//            currentEdge.outEdges
+//                .filter { it.exp !is VarAssignExpr }
+//                .forEach {
+            val varUsageExprs = edge.exp.getVarUsageExprs()
+            varUsageExprs.forEach {
+                if (it.variableName == originalVariableName) {
+                    it.variableName = newVariableName
+                }
             }
+            edge.node?.outEdges?.forEach { goDown(it) }
         }
-        goDown(node)
+        goDown(edge)
     }
 
     fun fill(node: Node): Node {
         val frontiers = DominanceFrontiers.calculate(node)
-        depthFirstSearch(node) { searchedNode ->
+        depthFirstSearch(node) { searchedNode ->  //TODO: Shouldn't this be just frontiers.forEach ?
             if (!frontiers.contains(searchedNode)) {
                 return@depthFirstSearch
             }
-            val defs: MutableMap<Node, VarDefExpr> = HashMap()
+            val defs: MutableList<Pair<Node, VarDefExpr>> = ArrayList()
             fun goUpper(n: Node) {
                 n.inEdges.forEach {
                     val containsDF = it.node?.dominanceFrontiers?.contains(searchedNode)
@@ -46,31 +45,39 @@ object PhiFiller {
                     val expr = it.node?.outEdges?.firstOrNull { it.node == n }?.exp
                     if (expr is VarAssignExpr) {
                         if (expr.target is VarDefExpr) {
-                            defs[it.node!!] = expr.target
+                            val targetIndex = defs.indexOfFirst { def -> def.second === expr.target }
+                            if(targetIndex != -1) {
+                                defs[targetIndex] = Pair(defs[targetIndex].first, expr.target)
+                            } else {
+                                defs.add(Pair(n, expr.target))
+                            }
                         }
                     }
                 }
             }
             goUpper(searchedNode)
-            val args = defs.filter { def -> defs.values.filter { it == def.value }.size >= 2 }
+            val args = defs.filter { def -> defs.filter { it.second.name == def.second.name }.size >= 2 }
             if (args.isEmpty()) {
                 return@depthFirstSearch
             }
-            val originalVariableNames = args.values.map { it.name }.distinct()
+            val originalVariableNames = args.map { it.second.name }.distinct()
             val phiNode = Node(searchedNode.outEdges)
-            val argNames = args.values.groupBy { it.name }.values.map { lst -> lst.mapIndexed { i, arg -> arg.name + "_" + i }.toTypedArray()}
-            val phiExpr = PhiExpressions(args.values.groupBy { it.name }.values.map {
-                lst -> PhiExpression( lst.first().name + "_" + lst.size, lst.mapIndexed { index, arg -> arg.name + "_" + index}.toTypedArray())
+//            val argNames = args.groupBy { it.name }.values.map { lst -> lst.mapIndexed { i, arg -> arg.name + "_" + i }.toTypedArray()}
+            val phiExpr = PhiExpressions(args.groupBy { it.second.name }.values.map {
+                lst -> PhiExpression( lst.first().second.name + "_" + lst.size, lst.mapIndexed { index, arg -> arg.second.name + "_" + index}.toTypedArray())
             })
             val phis = Edge(phiNode, phiExpr)
-            args.entries.groupBy { it.value.name }.values.forEach { lst -> lst.forEachIndexed { i, entry ->
-                val originalName = entry.value.name
-                val phi = phiExpr.phis.find { getOriginalName(it.target) == originalName }!!
+            args.groupBy { it.second.name }.values.forEach { lst -> lst.forEachIndexed { i, entry ->
+                val originalName = getOriginalName(entry.second.name)
+                val phi = phiExpr.phis.find {
+                    getOriginalName(it.target) == originalName
+                }!!
                 val newName = phi.vars[i]
-                entry.key.outEdges
-                    .mapNotNull { it.node }
-                    .forEach { goDownAndRemarkUsagesUntilNextAssignment(it, originalName, newName) }
-                entry.value.name = newName
+                entry.first.outEdges
+                    .forEach {
+                        goDownAndRemarkUsagesUntilNextAssignment(it, originalName, newName)
+                    }
+                entry.second.name = newName
             }}
 
             val iHaveBeenThere = HashSet<Int>()

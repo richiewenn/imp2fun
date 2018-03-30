@@ -65,7 +65,7 @@ private operator fun Ast.plus(f: (Ast) -> Ast): Ast {
 }
 
 fun main(args: Array<String>) {
-    val result = astPreprocessor(forCycle) +
+    val result = astPreprocessor(simple) +
     cfgPreprocessor +
     fillInEdges +
     removeJumps +
