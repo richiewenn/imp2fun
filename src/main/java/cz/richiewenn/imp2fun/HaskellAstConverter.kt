@@ -29,13 +29,23 @@ object HaskellAstConverter {
             }
 
             val nodes = mapNode(currentRoot) // This must be executed early so the globalFunctions are populated
-            return AstNode(globalFunctions.toSet().toList()+MainNode(nodes.first()))
+            val gf = this.globalFunctions
+                    .groupBy { it.name }
+                    .values
+                    .map {
+                        it.maxBy { it.size }!!
+                    }
+            return AstNode(gf+MainNode(nodes.first()))
         }
         return inner(root)
     }
 
     fun mapNode(node: Node?): List<Ast> {
         if (node == null || iHaveBeenThere.contains(node.id)) {
+            val first = node?.outEdges?.firstOrNull()
+            if(first != null && (first.exp is PhiExpression || first.exp is PhiExpressions)) {
+                return mapEdge(first)
+            }
             return listOf(AstLeaf())
         }
         iHaveBeenThere.add(node.id)
@@ -57,11 +67,11 @@ object HaskellAstConverter {
         return listOf(when (exp) {
             is ConstantExpr -> ConstantAstLeaf(exp.value)
             //(exp.target as VarDefExpr).name, mapExpression(exp.value)
-            is ReturnExpr -> FunctionCallAstLeaf(exp.name, emptyList())
+            is ReturnExpr -> FunctionCallAstLeaf(exp.returnExpr.variableName, emptyList())
             is VarAssignExpr -> if(nodes.isNotEmpty()) {
                 LetRec((exp.target as VarDefExpr).name, mapExpression(exp.value), nodes.first())
             } else {
-                LetRec((exp.target as VarDefExpr).name, mapExpression(exp.value), AstLeaf())
+                LetRec((exp.target as VarDefExpr).name, mapExpression(exp.value), FunctionCallAstLeaf(exp.target.name))
             }
             is PhiExpression -> {
                 val f = FunctionAstNode("phi_${edge.id}", listOf(exp.target), nodes.first())
