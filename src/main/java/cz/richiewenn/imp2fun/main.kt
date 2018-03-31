@@ -19,18 +19,19 @@ public class Fibonacci {
         """.trimIndent()
 val primes = """
 public class Prime {
-    public int[] primes(int N) {
-        int[] primes = new int[N];
-        int count = 0, max_count = 100, i;
-        for(int num=1; count<N; num = num + 1) {
-            for(i=2; num%i != 0; i = i + 1);
+    public int prime() {
+        int Nth = 20;
+        int num = 1;
+        int count = 0;
+        for(; count < Nth; num = num + 1) {
+            int i = 2;
+            for(; num%i != 0; i = i + 1);
 
             if(i == num) {
-                primes[count] = num;
                 count = count + 1;
             }
         }
-        return primes;
+        return num;
     }
 }
         """.trimIndent()

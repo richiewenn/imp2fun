@@ -1,8 +1,11 @@
 package cz.richiewenn.imp2fun
 
-import com.github.javaparser.ast.expr.NameExpr
+import com.github.javaparser.ast.expr.*
+import com.github.javaparser.ast.stmt.BlockStmt
+import com.github.javaparser.ast.stmt.EmptyStmt
 import com.github.javaparser.ast.stmt.ReturnStmt
 import cz.richiewenn.imp2fun.cfg.*
+import cz.richiewenn.imp2fun.expressions.Expr
 import cz.richiewenn.imp2fun.expressions.JumpExpr
 import cz.richiewenn.imp2fun.expressions.OtherwiseExpr
 import cz.richiewenn.imp2fun.expressions.ReturnExpr
@@ -46,17 +49,76 @@ object Ast2Cfg {
 
     private fun forToCFG(node: AstNode): Node {
         val children = node.childNodes
-        val defI = toCFG(children[0])
-        val astCondition = children[1]
-        val ipp = toCFG(children[2])
-        val body = toCFG(children[3]).plusLeft(ipp)
-        val condition = Node(
-            Edge(Node(), OtherwiseExpr()),
-            Edge(body, ExpressionMapper.map(astCondition))
-        )
-        body.lastLeft().outEdges = listOf(Edge(condition, JumpExpr(), Edge.Orientation.BACKWARD))
-        defI.outEdges.first().node = condition
+//        val defI = toCFG(children[0])
+//        val astCondition = ExpressionMapper.map(children[1])
+//        val ipp = toCFG(children[2])
+//        val body = toCFG(children[3]).plusLeft(ipp)
+//        val body = toCFG(children[2])
 
-        return defI
+//        val condition = Node(
+//            Edge(Node(), OtherwiseExpr()),
+//            Edge(body, astCondition)
+//        )
+//        body.lastLeft().outEdges = listOf(Edge(condition, JumpExpr(), Edge.Orientation.BACKWARD))
+//        defI.outEdges.first().node = condition
+//
+//        return defI
+        return For(children).getRoot()
     }
+}
+
+
+class For(def: List<AstNode>) {
+    val defI = def.find { it is VariableDeclarationExpr }?.toCfg()
+    val condition = def.find { it is BinaryExpr }?.toCfg()?.outEdges?.first()
+    val ipp: AssignExpr? = def.find { it is AssignExpr } as? AssignExpr?
+    val blockBody = def.find { it is BlockStmt }?.toCfg()
+    val isEmptyBody = def.find { it is EmptyStmt } != null
+
+    fun getRoot(): Node {
+        val astCondition = Node()
+        val backExpr = if(ipp != null) ExpressionMapper.map(ipp) else JumpExpr()
+        val backEdge = Edge(astCondition, backExpr, Edge.Orientation.BACKWARD)
+        val backNode = Node(backEdge)
+        if (this.condition != null) {
+            astCondition.outEdges = listOf(
+                Edge(Node(), OtherwiseExpr()),
+                if (!isEmptyBody) {
+                    if(ipp != null) {
+                        blockBody?.plusLeft(backNode)
+                    }
+                    blockBody?.lastLeft()?.outEdges = listOf(Edge(astCondition, JumpExpr(), Edge.Orientation.BACKWARD))
+                    condition.node = blockBody
+                    condition
+                }
+                else {
+                    condition.node = backNode
+                    condition
+                }
+            )
+        } else {
+
+        }
+
+        if(defI != null) {
+            defI.outEdges.first().node = astCondition
+            return defI
+        }
+        return astCondition
+    }
+
+//    val defI: Node, val condition: Expr, val ipp: Node, val body: Node
+//    companion object {
+//        fun new(def: List<AstNode>): For {
+//            val defI = def.find { it is VariableDeclarationExpr }
+//            val condition = def.find { it is AssignExpr }
+//            val ipp = def.find { it is BinaryExpr }
+//            val blockBody = def.find { it is BlockStmt }
+//            val emptyBody = def.find { it is EmptyStmt }
+//        }
+//    }
+}
+
+private fun AstNode.toCfg(): Node {
+    return Ast2Cfg.toCFG(this)
 }
