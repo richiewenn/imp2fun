@@ -36,6 +36,7 @@ object PhiFiller {
             if (!frontiers.contains(searchedNode)) {
                 return@depthFirstSearch
             }
+            // Finds definitions of variables before this.
             val defs: MutableList<Pair<Node, VarDefExpr>> = ArrayList()
             fun goUpper(n: Node) {
                 n.inEdges.forEach {
@@ -57,7 +58,11 @@ object PhiFiller {
                 }
             }
             goUpper(searchedNode)
-            val args = defs.filter { def -> defs.filter { it.second.name == def.second.name }.size >= 2 }
+
+            val args = defs.filter { def -> defs.filter {
+                it.second.name == def.second.name && it.first.id != def.first.id
+            }.size >= 1
+            }
             if (args.isEmpty()) {
                 return@depthFirstSearch
             }

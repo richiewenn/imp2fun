@@ -58,12 +58,15 @@ class DotConverter {
 //                    listOf("${node.id}->${edge.node!!.id} [label=\"${edge.exp} ${edge.orientation}\"]", "${node.id} [label=\"${node.id} ${node.doms.map { it.id }}\"]")
 //                    listOf("${node.id}->${edge.node!!.id} [label=\"${node.doms}\"]")
 //                    listOf("${node.id}->${edge.node!!.id}")
+//                    listOf("${edge.exp} ${edge.node?.inEdges?.map { it.orientation }?.joinToString { " " }}")
+//                    emptyList()
                 } else {
 //                    listOf("${node.id}->${edge.node!!.id} [label=\"${edge.exp} ${edge.orientation}\"]") + this.convert(edge.node)
                     listOf("${node.id}->${edge.node!!.id} [label=\"${edge.exp}\"]", "${node.id} [label=\"${node.id} ${node.dominanceFrontiers.map { it.id }}\"]") + this.convert(edge.node)
 //                    listOf("${node.id}->${edge.node!!.id} [label=\"${edge.exp} ${edge.orientation}\"]", "${node.id} [label=\"${node.id} ${node.doms.map { it.id }}\"]") + this.convert(edge.node)
 //                    listOf("${node.id}->${edge.node!!.id} [label=\"${node.doms}\"]").plus(this.convert(edge.node))
 //                    listOf("${node.id}->${edge.node!!.id}").plus(this.convert(edge.node))
+//                    listOf("${edge.exp} ${edge.node?.inEdges?.map { it.orientation.name }}").plus(this.convert(edge.node))
                 }
             )
         }

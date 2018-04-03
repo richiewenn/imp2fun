@@ -23,12 +23,9 @@ public class Prime {
         int Nth = 20;
         int num = 1;
         int count = 0;
-        for(; count < Nth; num = num + 1) {
-            int i = 2;
-            for(; num%i != 0; i = i + 1);
-
-            if(i == num) {
-                count = count + 1;
+        for(int a = 0; count < Nth; num = num + 1) {
+            for(int i = 0; num%i != 0; i = i + 1) {
+                a = a + i + 1;
             }
         }
         return num;

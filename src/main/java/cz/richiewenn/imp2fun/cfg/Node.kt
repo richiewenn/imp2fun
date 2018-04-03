@@ -1,5 +1,7 @@
 package cz.richiewenn.imp2fun.cfg
 
+import guru.nidi.graphviz.model.Factory.node
+
 class Node(var outEdges: List<Edge> = emptyList()) {
     constructor(vararg edges: Edge) : this(edges.toList())
     constructor(vararg nodes: Node) : this(nodes.toList().map { Edge(it) })
@@ -59,6 +61,11 @@ class Node(var outEdges: List<Edge> = emptyList()) {
 
     enum class Color {
         WHITE, GREY, BLACK
+    }
+
+    fun getDotLinkSources(): guru.nidi.graphviz.model.Node {
+//        listOf("${node.id}->${edge.node!!.id} [label=\"${edge.exp}\"]", "${node.id} [label=\"${node.id} ${node.dominanceFrontiers.map { it.id }}\"]")
+        return node("${this.id}").link(*this.outEdges.map { it.node?.getDotLinkSources() }.toTypedArray())
     }
 
 }
