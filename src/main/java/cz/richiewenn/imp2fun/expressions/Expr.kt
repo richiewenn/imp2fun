@@ -16,4 +16,15 @@ interface Expr : Serializable {
         }
         return get(emptyList(), this)
     }
+
+    fun getVarDefExprs(): List<VarDefExpr> {
+        fun get(list: List<VarDefExpr>, expr: Expr): List<VarDefExpr> {
+            return when(expr) {
+                is VarAssignExpr -> list + get(list, expr.target)
+                is VarDefExpr -> list + expr
+                else -> emptyList()
+            }
+        }
+        return get(emptyList(), this)
+    }
 }

@@ -52,7 +52,7 @@ object DominanceFrontiers {
     }
 }
 
-fun depthFirstSearch(root: Node, callback: (Node) -> Unit) {
+fun depthFirstSearch(root: Node, callback: (node: Node) -> Unit) {
     val stack: Stack<Node> = Stack()
     fun f(node: Node) {
         stack.add(node)
@@ -64,5 +64,6 @@ fun depthFirstSearch(root: Node, callback: (Node) -> Unit) {
         }
     }
     f(root)
+    callback(root)
 }
 

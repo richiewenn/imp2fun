@@ -30,7 +30,7 @@ val dominanceFrontiers: (Node) -> (Node) = {
     DominanceFrontiers.fill(it)
 }
 val phiFunctions: (Node) -> (Node) = {
-    PhiFiller.fill(it)
+    RonCytronsPhiFiller().fill(it)
 }
 val printDot: (Node) -> (Node) = {
     println("---------")
@@ -65,7 +65,7 @@ private operator fun Ast.plus(f: (Ast) -> Ast): Ast {
 }
 
 fun main(args: Array<String>) {
-    val result = astPreprocessor(primes) +
+    val result = astPreprocessor(simple) +
     cfgPreprocessor +
     fillInEdges +
     removeJumps +
