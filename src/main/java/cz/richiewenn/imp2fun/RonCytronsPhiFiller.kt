@@ -49,8 +49,6 @@ class RonCytronsPhiFiller {
 
 
         w = HashSet()
-
-        // For each variable V do
         /** Set of Edges that contains assigment (varDef) to variable [v] */
         fun a(v: String): Set<Edge> {
             val edges = HashSet<Edge>()
@@ -62,6 +60,7 @@ class RonCytronsPhiFiller {
             return edges
         }
 
+        // For each variable V do
         val varNames = HashSet<String>()
         depthFirstEdgeSearch(node) { edge -> varNames.addAll(edge.exp.getVarDefExprs().map { it.name }) }
         varNames.forEach { v ->
@@ -89,8 +88,6 @@ class RonCytronsPhiFiller {
                 }
             }
         }
-
-
     }
 
     private fun placePhiFunctionAt(y: Edge, variable: String) {
@@ -103,7 +100,7 @@ class RonCytronsPhiFiller {
             } else { // There are some phis, but phi for the variable does not exists yet
                 phis.phis.add(PhiExpression(
                     target = VarDefExpr(variable),
-                    vars = mutableListOf(variable, variable, variable)
+                    vars = mutableListOf()
                 ))
                 return
             }
@@ -117,7 +114,7 @@ class RonCytronsPhiFiller {
                 phis = mutableListOf(
                     PhiExpression(
                         target = VarDefExpr(variable),
-                        vars = mutableListOf(variable, variable, variable)
+                        vars = mutableListOf()
                     )
                 )
             )
@@ -158,7 +155,8 @@ class RonCytronsPhiFiller {
                 .forEach {
                     (it.exp as PhiExpressions).phis.forEach {
                         if (this.s[it.originalName] != null && this.s[it.originalName]?.isNotEmpty() == true) {
-                            it.vars[j] = it.vars[j] + "_" + this.s[it.originalName]!!.peek()
+                            it.vars.add(it.originalName + "_" + this.s[it.originalName]!!.peek())
+//                            it.vars[j] = it.vars[j] + "_" + this.s[it.originalName]!!.peek()
                         }
                     }
                 }

@@ -20,10 +20,10 @@ public class Fibonacci {
 val primes = """
 public class Prime {
     public int prime() {
-        int Nth = 20;
+        int nth = 20;
         int num = 1;
         int count = 0;
-        for(; count < Nth; num = num + 1) {
+        for(; count < nth; num = num + 1) {
             int i = 2;
             for(; num%i != 0; i = i + 1);
 
@@ -59,6 +59,21 @@ public class Simple {
     }
 }
         """.trimIndent()
+val simple2 = """
+public class Simple {
+    public int simple() {
+        int a = 1;
+        int c = 1;
+        int d = 1;
+        if(a == 1) {
+            a = 2;
+            c = 2;
+        }
+        int b = a + c;
+        return b;
+    }
+}
+"""
 
 fun main(args: Array<String>) {
 

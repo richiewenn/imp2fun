@@ -33,23 +33,29 @@ object HaskellAstConverter {
             // Go up and find what argument names should be used to call this phi functions
             fun getVarName(parent: Ast?, arg: String): String? {
                 if (parent == null) {
-                    return null
+                    return arg+"_WRONG"
                 }
                 if (parent is LetRec) {
                     if (getOriginalName(parent.variableName) == getOriginalName(arg)) {
                         return parent.variableName
+                    } else {
+                        return getVarName(parent.parent, arg)
                     }
+                } else if (parent is FunctionAstNode) {
+                    if(parent.args.any { getOriginalName(it) == getOriginalName(arg)}) {
+                        return parent.args.find { getOriginalName(it) == getOriginalName(arg)}!!
+                    } else {
+                        return getVarName(parent.parent, arg)
+                    }
+                } else {
+                    return getVarName(parent.parent, arg)
                 }
-                return null
             }
             this.phiCalls.forEach {phi ->
                 phi.first.args = phi.first.args.map { arg ->
                     val parent = phi.first.parent
                     val name = getVarName(parent, arg)
-                    if(name != null) {
-                        return@map name
-                    }
-                    return@map getVarName(parent?.parent, arg)
+                    return@map name
                 }.filterNotNull()
             }
 

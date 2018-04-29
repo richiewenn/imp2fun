@@ -32,6 +32,9 @@ val dominanceFrontiers: (Node) -> (Node) = {
 val phiFunctions: (Node) -> (Node) = {
     RonCytronsPhiFiller().fill(it)
 }
+val phiFunctionsOptimizer: (Node) -> (Node) = {
+    PhiFunctionOptimizer().optimize(it)
+}
 val printDot: (Node) -> (Node) = {
     println("---------")
     println(DotConverter().convert(it).joinToString(System.lineSeparator()))
@@ -47,7 +50,7 @@ val printAstDot: (Ast) -> (Ast) = {
     val link = it.getDotLinkSources()
 //    val links = listOf(node("1").link(node("2"), node("3")))
     val graph = graph().directed().with(link)
-    Graphviz.fromGraph(graph).width(1800).render(Format.PNG).toFile(File("./graph.png"))
+    Graphviz.fromGraph(graph).width(1800).render(Format.SVG).toFile(File("./graph.svg"))
     it
 }
 
@@ -65,13 +68,14 @@ private operator fun Ast.plus(f: (Ast) -> Ast): Ast {
 }
 
 fun main(args: Array<String>) {
-    val result = astPreprocessor(simple) +
+    val result = astPreprocessor(primes) +
     cfgPreprocessor +
     fillInEdges +
     removeJumps +
     printDot +
     dominanceFrontiers +
     phiFunctions +
+    phiFunctionsOptimizer +
     printDot +
     convertToHaskellAst +
     printAstDot

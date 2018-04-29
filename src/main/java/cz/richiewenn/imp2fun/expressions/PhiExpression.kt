@@ -4,8 +4,12 @@ data class PhiExpression(
     val target: VarDefExpr,
     val vars: MutableList<String>,
     val originalName: String = target.name
-) : Expr
+) : Expr {
+    override fun toString(): String {
+        return "$target"
+    }
+}
 
 data class PhiExpressions(
-    val phis: MutableList<PhiExpression>
+    var phis: MutableList<PhiExpression>
 ) : Expr
