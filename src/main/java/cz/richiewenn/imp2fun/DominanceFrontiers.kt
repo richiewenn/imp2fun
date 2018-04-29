@@ -1,10 +1,12 @@
 package cz.richiewenn.imp2fun
 
+import cz.richiewenn.imp2fun.cfg.Edge
 import cz.richiewenn.imp2fun.cfg.Node
 import java.util.*
 import kotlin.collections.HashSet
 
 object DominanceFrontiers {
+
     fun calculate(node: Node): Set<Node> {
         val dominanceFrontiers = HashSet<Node>()
         depthFirstSearch(node) { b ->
@@ -65,5 +67,22 @@ fun depthFirstSearch(root: Node, callback: (node: Node) -> Unit) {
     }
     f(root)
     callback(root)
+}
+
+fun depthFirstEdgeSearch(root: Node, callback: (edge: Edge) -> Unit) {
+    val stack: Stack<Edge> = Stack()
+    fun f(edges: List<Edge>) {
+        stack.addAll(edges)
+        for (edge in edges) {
+            for (childEdge in edge.node?.outEdges ?: return) {
+                if (!stack.contains(childEdge)) {
+                    f(listOf(childEdge))
+                }
+                callback(childEdge)
+            }
+        }
+    }
+    f(root.outEdges)
+    root.outEdges.forEach(callback)
 }
 

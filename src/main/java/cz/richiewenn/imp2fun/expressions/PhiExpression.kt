@@ -1,11 +1,11 @@
 package cz.richiewenn.imp2fun.expressions
 
 data class PhiExpression(
-    val target: String,
-    val vars: Array<String>,
-    val originalName: String = target
+    val target: VarDefExpr,
+    val vars: MutableList<String>,
+    val originalName: String = target.name
 ) : Expr
 
 data class PhiExpressions(
-    val phis: List<PhiExpression>
+    val phis: MutableList<PhiExpression>
 ) : Expr

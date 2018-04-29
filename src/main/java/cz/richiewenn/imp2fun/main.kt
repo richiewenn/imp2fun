@@ -104,10 +104,10 @@ fun main(args: Array<String>) {
     println(result4)
     println("--------------------Dominance Frontiers")
     println(DominanceFrontiers.calculate(filledCfg))
-    val phi = PhiFiller.fill(withFrontiers)
-    val result5 = DotConverter().convert(phi).joinToString(System.lineSeparator())
-    println("--------------------phi")
-    println(result5)
+//    val phi = PhiFiller.fill(withFrontiers)
+//    val result5 = DotConverter().convert(phi).joinToString(System.lineSeparator())
+//    println("--------------------phi")
+//    println(result5)
 
 }
 

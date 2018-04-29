@@ -8,6 +8,7 @@ import cz.richiewenn.imp2fun.expressions.VarAssignExpr
 import cz.richiewenn.imp2fun.expressions.VarDefExpr
 import java.util.*
 import kotlin.collections.HashMap
+import kotlin.collections.HashSet
 
 class RonCytronsPhiFiller {
     /**  */
@@ -16,11 +17,12 @@ class RonCytronsPhiFiller {
     private val c = HashMap<String, Int>()
     private val hasAlready = HashMap<Int, Int>()
     private val work = HashMap<Int, Int>()
-    private var w = HashSet<Edge>()
+    private var w: HashSet<Edge> = HashSet()
 
-    fun fill(node: Node): Node {
-        this.insertPhiFunctions(node)
-        depthFirstSearch(node) {
+    fun fill(root: Node): Node {
+        this.insertPhiFunctions(root)
+
+        depthFirstSearch(root) {
             it.outEdges.forEach {
                 it.exp.getVarDefExprs()
                     .filter { !s.containsKey(it.name) }
@@ -30,122 +32,139 @@ class RonCytronsPhiFiller {
                     }
             }
         }
-        node.outEdges.forEach { search(it) }
-        return node
+
+        val dominanceTree = DominanceTree().dominanceNodeTree(root)
+        search(dominanceTree)
+
+        return root
     }
 
     private fun insertPhiFunctions(node: Node) {
-        depthFirstSearch(node) { n ->
-            n.outEdges.forEach { edge ->
-                hasAlready[edge.id] = 0
-                work[edge.id] = 0
-            }
+        var iterCount = 0
+        // For each node (edge) X do
+        depthFirstEdgeSearch(node) { x: Edge ->
+            hasAlready[x.id] = 0
+            work[x.id] = 0
         }
-        val frontiers = DominanceFrontiers.calculate(node)
-        val sequence = generateSequence(1) { it + 1 }.iterator()
-        depthFirstSearch(node) { n ->
-            n.outEdges.forEach { edge ->
-                edge.exp.getVarDefExprs().forEach { varDef ->
-                    val iterCount = sequence.next()
-                    work[edge.id] = iterCount
-                    w.add(edge)
+
+
+        w = HashSet()
+
+        // For each variable V do
+        /** Set of Edges that contains assigment (varDef) to variable [v] */
+        fun a(v: String): Set<Edge> {
+            val edges = HashSet<Edge>()
+            depthFirstEdgeSearch(node) { edge ->
+                if (edge.exp.getVarDefExprs().map { it.name }.contains(v)) {
+                    edges.add(edge)
                 }
             }
-            val phi = PhiExpressions(w.map { e ->
-                val name = e.exp.getVarDefExprs().first().name
-                PhiExpression(
-                    target = name,
-                    originalName = name,
-                    vars = getAllRHSVars(name, node)
-                )
-            })
-            val newNode = Node(
-                outEdges = listOf(
-                    Edge(
-                        node = n,
-                        exp = phi
+            return edges
+        }
+
+        val varNames = HashSet<String>()
+        depthFirstEdgeSearch(node) { edge -> varNames.addAll(edge.exp.getVarDefExprs().map { it.name }) }
+        varNames.forEach { v ->
+            iterCount++
+            a(v).forEach { x ->
+                work[x.id] = iterCount
+                w = w.union(listOf(x)).toHashSet()
+            }
+            while (w.isNotEmpty()) {
+                val x = w.first()
+                w.remove(x)
+                // For each Y in DF(X)
+                DominanceFrontiers.calculate(Node(x)).forEach { dfNode ->
+                    val dfx = dfNode.inEdges.map { it.node }.mapNotNull { it?.outEdges }.flatMap { it }.filter { it.node == dfNode }
+                    dfx.forEach { y: Edge ->
+                        if (hasAlready[y.id]!! < iterCount) {
+                            placePhiFunctionAt(y, v)
+                            hasAlready[y.id] = iterCount
+                            if (work[y.id]!! < iterCount) {
+                                work[y.id] = iterCount
+                                w = w.union(listOf(y)).toHashSet()
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+
+    }
+
+    private fun placePhiFunctionAt(y: Edge, variable: String) {
+        // CASE: Some phi function was already inserted
+        if(y.node?.outEdges?.size == 1 && y.node?.outEdges?.first()?.exp is PhiExpressions) { // Already inserted Phi
+            val phis = y.node?.outEdges?.first()?.exp!! as PhiExpressions
+            if(phis.phis.any { it.target.name == variable }) {
+                phis.phis.find { it.target.name == variable }!!.vars.add(variable)
+                return // Phi for the variable already exists and RHS variable was added
+            } else { // There are some phis, but phi for the variable does not exists yet
+                phis.phis.add(PhiExpression(
+                    target = VarDefExpr(variable),
+                    vars = mutableListOf(variable, variable, variable)
+                ))
+                return
+            }
+        }
+
+        // CASE: No phi function exists yet
+        val newNode = Node(outEdges = y.node!!.outEdges)
+        val phiEdge = Edge(
+            node = newNode,
+            exp = PhiExpressions(
+                phis = mutableListOf(
+                    PhiExpression(
+                        target = VarDefExpr(variable),
+                        vars = mutableListOf(variable, variable, variable)
                     )
                 )
             )
-            n.inEdges
-                .mapNotNull { it.node }
+        )
+        y.node!!.outEdges = listOf(phiEdge)
+        newNode.inEdges = mutableSetOf(Edge(y.node))
+
+        newNode.outEdges.mapNotNull { it.node }.forEach { node ->
+            node.inEdges.filter { it.node == y.node }.forEach { edge ->
+                edge.node = newNode
+            }
+        }
+    }
+
+
+    private fun search(dtNode: DTNode) {
+        dtNode.node.outEdges.forEach { edge ->
+            edge.exp.getVarUsageExprs()
+                .filter { it.variableName == getOriginalName(it.variableName) }
                 .forEach {
-                    val out = it.outEdges.find { it.node == n }!!
-                    val newEdge = Edge(newNode, out.exp)
-                    it.outEdges = it.outEdges.filter { it.node != n } + newEdge
+                    if (this.s[it.variableName] != null && this.s[it.variableName]?.isNotEmpty() == true) {
+                        it.variableName = it.variableName + "_" + this.s[it.variableName]!!.peek()
+                    }
                 }
-            newNode.inEdges = n.inEdges
-            n.inEdges = mutableSetOf(Edge(newNode))
-
-            w = HashSet<Edge>()
-        }
-
-    }
-
-    private fun getAllRHSVars(name: String, root: Node): Array<String> {
-        val arr = ArrayList<String>()
-        depthFirstSearch(root) {
-            arr.addAll(it.outEdges
-                .flatMap { edge -> edge.exp.getVarUsageExprs() }
-                .map { it.variableName }
-                .filter { it == name }
-            )
-        }
-        return arr.flatMap { listOf(it, it, it, it, it) }.toTypedArray()
-    }
-
-    private fun search(edge: Edge) {
-        edge.exp.getVarUsageExprs()
-            .filter { it.variableName == getOriginalName(it.variableName) }
-            .forEach {
-                it.variableName = it.variableName + "_" + this.s[it.variableName]!!.peek()
-            }
-        edge.exp.getVarDefExprs()
-            .filter { it.name == getOriginalName(it.name) }
-            .forEach {
-                val i = this.c[it.name]!!
-                this.s[it.name]!!.push(i)
-                this.c[it.name] = i + 1
-                it.name = it.name + "_" + i
-            }
-        if (edge.node != null) {
-            depthFirstSearch(edge.node!!) { y ->
-                val j = whichPred(edge.node!!, y)
-                y.outEdges
-                    .filter { it.exp is PhiExpressions }
-                    .forEach {
-                        (it.exp as PhiExpressions).phis.forEach {
+            edge.exp.getVarDefExprs()
+                .filter { it.name == getOriginalName(it.name) }
+                .forEach {
+                    val i = this.c[it.name]!!
+                    this.s[it.name]!!.push(i)
+                    this.c[it.name] = i + 1
+                    it.name = it.name + "_" + i
+                }
+        } // END of first loop
+        dtNode.succ().forEach { (y, depth) ->
+            val j = depth // whichPred(edge.node!!, y)
+            y.node.outEdges
+                .filter { it.exp is PhiExpressions }
+                .forEach {
+                    (it.exp as PhiExpressions).phis.forEach {
+                        if (this.s[it.originalName] != null && this.s[it.originalName]?.isNotEmpty() == true) {
                             it.vars[j] = it.vars[j] + "_" + this.s[it.originalName]!!.peek()
                         }
                     }
-            }
+                }
         }
-        if (edge.node != null) {
-            edge.node!!.outEdges.forEach(this::search)
-        }
-//        edge.exp.getVarDefExprs().forEach {
-//            val v = getOriginalName(it.name)
-//            this.s[v]!!.pop()
-//        }
+        dtNode.children.forEach(this::search)
     }
 
-    /**
-     * X->.->.->Y  = 3
-     */
-    private fun whichPred(x: Node, y: Node): Int {
-        fun checkDepth(nodes: List<Node>, depth: Int): Int {
-            val parents = nodes.flatMap { it.inEdges }.mapNotNull { it.node }
-            val found = parents.any { x == it }
-            return if (found) {
-                depth + 1
-            } else {
-                checkDepth(parents, depth + 1)
-            }
-        }
-        if (x == y) {
-            return 0
-        }
-        return checkDepth(listOf(y), 0)
-    }
 
 }

@@ -7,7 +7,7 @@ import java.io.Serializable
 // TODO: Get rid of this nullable type Node?
 class Edge(var node: Node? = null, val exp: Expr = EmptyExpr(), var orientation: Orientation = Orientation.FORWARD) : Serializable {
     companion object { var lastId = 0 }
-    val id = lastId++
+    var id = lastId++
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

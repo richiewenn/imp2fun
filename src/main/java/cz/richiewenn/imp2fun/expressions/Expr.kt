@@ -22,6 +22,8 @@ interface Expr : Serializable {
             return when(expr) {
                 is VarAssignExpr -> list + get(list, expr.target)
                 is VarDefExpr -> list + expr
+                is PhiExpression -> list + expr.target
+                is PhiExpressions -> list + expr.phis.map { it.target }
                 else -> emptyList()
             }
         }
