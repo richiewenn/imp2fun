@@ -96,21 +96,14 @@ object HaskellAstConverter {
                 val f = FunctionAstNode("phi_${edge.id}", listOf(exp.target.name), nodes.first())
                 this.globalFunctions.add(f)
                 val index = this.globalFunctions.count { it == f }-1
-                if(index >= exp.vars.size) { // some stuff runs more times then it should so when it already run, we can just skip
-                    return emptyList()
-                }
                 val phiFun = FunctionCallAstLeaf("phi_${edge.id}", args = exp.vars[index])
                 this.phiCalls.add(Pair(phiFun, exp))
                 phiFun
-//                FunctionCallAstLeaf("phi_${edge.id}", args = findLatestDefinition(exp.target, edge.node))
             }
             is PhiExpressions -> {
                 val f = FunctionAstNode("phi_${edge.id}", exp.phis.map { it.target.name }, nodes.first())
                 this.globalFunctions.add(f)
                 val index = this.globalFunctions.count { it == f }-1
-                if(index >= exp.phis.size) { // some stuff runs more times then it should so when it already run, we can just skip
-                    return emptyList()
-                }
                 val phiFun = FunctionCallAstLeaf("phi_${edge.id}", args = exp.phis.map { it.vars[index] }.toList())
                 this.phiCalls.add(Pair(phiFun, exp))
                 phiFun
