@@ -5,7 +5,7 @@ data class IfElseExpressionAstNode(
     val ifBody: Ast,
     val elseBody: Ast
 ): AstNode(
-    listOf(condition, ifBody, elseBody)
+    mutableListOf(condition, ifBody, elseBody)
 ) {
     override fun print() = "If Then Else"
     override fun printCode() = """
@@ -21,7 +21,7 @@ data class IfElseAssignmentAstNode(
     val ifValue: String,
     val elseValue: String
 ): AstNode(
-    listOf(condition)
+    mutableListOf(condition)
 ) {
     override fun print() = "\"${this.javaClass.simpleName}\""
     override fun printCode() = """

@@ -12,7 +12,8 @@ fun getOriginalName(variable: String): String {
 }
 
 object HaskellAstConverter {
-    val globalFunctions = ArrayList<FunctionAstNode>()
+    /** Pair<Function, Level> */
+    var globalFunctions: MutableList<Pair<FunctionAstNode, FunctionCallAstLeaf>> = ArrayList()
     val phiCalls = ArrayList<Pair<FunctionCallAstLeaf, Expr>>()
 
     var iHaveBeenThere = HashSet<Int>()
@@ -23,13 +24,13 @@ object HaskellAstConverter {
                 return AstLeaf()
             }
 
-            val nodes = mapNode(currentRoot) // This must be executed early so the globalFunctions are populated
-            val gf = this.globalFunctions
-                    .groupBy { it.name }
-                    .values
-                    .map {
-                        it.maxBy { it.size }!!
-                    }
+            val nodes = mapNode(currentRoot, 0) // This must be executed early so the globalFunctions are populated
+//            val gf = this.globalFunctions
+//                    .groupBy { it.name }
+//                    .values
+//                    .map {
+//                        it.maxBy { it.size }!!
+//                    }
             // Go up and find what argument names should be used to call this phi functions
             fun getVarName(parent: Ast?, arg: String): String? {
                 if (parent == null) {
@@ -59,58 +60,90 @@ object HaskellAstConverter {
                 }.filterNotNull()
             }
 
-            return AstNode(gf+MainNode(nodes.first()))
+            fun insertFunctions(node: Ast) {
+                val needToInsert = globalFunctions.filter { it.second == node }.map { it.first }.distinct()
+                globalFunctions = globalFunctions.filterNot { needToInsert.any { insert -> insert.name == it.first.name }}.toMutableList()
+                if(needToInsert.isNotEmpty()) {
+                    fun leaf(a: FunctionAstNode): FunctionAstNode = if (a.theRest == null) a else leaf(a.theRest as FunctionAstNode)
+                    needToInsert.forEachIndexed { index, n ->
+                        if(index == 0) {
+                            return@forEachIndexed
+                        }
+                        leaf(needToInsert.first()).theRest = n
+                    }
+
+
+
+                    fun goUpAndFindDef(n: AstNode): LetRec {
+                        return if(n is LetRec) {
+                            n
+                        } else {
+                            goUpAndFindDef(n.parent!!)
+                        }
+                    }
+                    val n = goUpAndFindDef(node.parent!!)
+
+                    leaf(needToInsert.first()).theRest = n.inBody
+
+                    n.children = mutableListOf(n.variableAssignment, needToInsert.first())
+                    n.inBody = needToInsert.first()
+                }
+                if(node is AstNode) {
+                    node.children.forEach { insertFunctions(it) }
+                }
+
+            }
+            while (globalFunctions.isNotEmpty()) {
+                insertFunctions(nodes.first())
+            }
+
+            return MainNode(nodes.first())
         }
         return inner(root)
     }
 
-    fun mapNode(node: Node?): List<Ast> {
+    fun mapNode(node: Node?, level: Int): List<Ast> {
         if (node == null || iHaveBeenThere.contains(node.id)) {
             val first = node?.outEdges?.firstOrNull()
             if(first != null && (first.exp is PhiExpression || first.exp is PhiExpressions)) {
-                return mapEdge(first)
+                return mapEdge(first, level)
             }
             return listOf(AstLeaf())
         }
         iHaveBeenThere.add(node.id)
         return if (node.outEdges.size == 2 && node.outEdges[0].exp is OtherwiseExpr && node.outEdges[1].exp is BinaryExpr) {
-            val otherwise = mapNode(node.outEdges[0].node)
+            val otherwise = mapNode(node.outEdges[0].node, level+1)
             IfElseExpressionAstNode(
-                condition = mapExpression(node.outEdges[1].exp),
-                ifBody = mapNode(node.outEdges[1].node)[0],
+                condition = mapExpression(node.outEdges[1].exp, level+1),
+                ifBody = mapNode(node.outEdges[1].node, level+1)[0],
                 elseBody = otherwise[0]
             ) + otherwise
         } else {
-            node.outEdges.flatMap { mapEdge(it) }
+            node.outEdges.flatMap { mapEdge(it, level) }
         }
     }
 
 
-    fun mapEdge(edge: Edge): List<Ast> {
+    fun mapEdge(edge: Edge, level: Int): List<Ast> {
         val exp = edge.exp
-        val nodes = mapNode(edge.node)
+        val nodes = mapNode(edge.node, level+1)
         return listOf(when (exp) {
             is ConstantExpr -> ConstantAstLeaf(exp.value)
             //(exp.target as VarDefExpr).name, mapExpression(exp.value)
             is ReturnExpr -> FunctionCallAstLeaf(exp.returnExpr.variableName, emptyList())
             is VarAssignExpr -> if(nodes.isNotEmpty()) {
-                LetRec((exp.target as VarDefExpr).name, mapExpression(exp.value), nodes.first())
+                LetRec((exp.target as VarDefExpr).name, mapExpression(exp.value, level+1), nodes.first())
             } else {
-                LetRec((exp.target as VarDefExpr).name, mapExpression(exp.value), FunctionCallAstLeaf(exp.target.name))
-            }
-            is PhiExpression -> {
-                val f = FunctionAstNode("phi_${edge.id}", listOf(exp.target.name), nodes.first())
-                this.globalFunctions.add(f)
-                val index = this.globalFunctions.count { it == f }-1
-                val phiFun = FunctionCallAstLeaf("phi_${edge.id}", args = exp.vars[index])
-                this.phiCalls.add(Pair(phiFun, exp))
-                phiFun
+                LetRec((exp.target as VarDefExpr).name, mapExpression(exp.value, level+1), FunctionCallAstLeaf(exp.target.name))
             }
             is PhiExpressions -> {
-                val f = FunctionAstNode("phi_${edge.id}", exp.phis.map { it.target.name }, nodes.first())
-                this.globalFunctions.add(f)
-                val index = this.globalFunctions.count { it == f }-1
-                val phiFun = FunctionCallAstLeaf("phi_${edge.id}", args = exp.phis.map { it.vars[index] }.toList())
+                val funName = "phi_${edge.id}"
+                val index = this.globalFunctions.count { it.first.name == funName }
+                val defArgs = exp.phis.filter { it.vars.size > index }.map { it.target.name }
+                val f = FunctionAstNode(funName, defArgs, nodes.first())
+                val args = exp.phis.filter { it.vars.size > index }.map { it.vars[index] }.toList()
+                val phiFun = FunctionCallAstLeaf("phi_${edge.id}", args = args)
+                this.globalFunctions.add(Pair(f, phiFun))
                 this.phiCalls.add(Pair(phiFun, exp))
                 phiFun
             }
@@ -119,7 +152,7 @@ object HaskellAstConverter {
 //            is OtherwiseExpr -> AstLeaf() //ArgumentlessFunctionAstNode()
 //            is VarUsageExpr -> AstLeaf()
 //            is PhiExpression -> FunctionAstNode("phi", exp.vars.map { FunctionCallAstLeaf(it, emptyList()) }, AstLeaf())
-            else -> mapExpression(exp)
+            else -> mapExpression(exp, level)
         })
     }
 
@@ -160,12 +193,12 @@ object HaskellAstConverter {
         return search(target)
     }
 
-    fun mapExpression(exp: Expr): Ast {
+    fun mapExpression(exp: Expr, level: Int): Ast {
         return when (exp) {
             is ConstantExpr -> ConstantAstLeaf(exp.value)
-            is VarAssignExpr -> ArgumentlessFunctionAstNode((exp.target as VarDefExpr).name, mapExpression(exp.value))
+            is VarAssignExpr -> ArgumentlessFunctionAstNode((exp.target as VarDefExpr).name, mapExpression(exp.value, level+1))
 //            is VarDefExpr ->
-            is BinaryExpr -> BinaryAstNode(mapExpression(exp.left), mapExpression(exp.right), exp.operator)
+            is BinaryExpr -> BinaryAstNode(mapExpression(exp.left, level+1), mapExpression(exp.right, level+1), exp.operator)
             is OtherwiseExpr -> AstLeaf() //ArgumentlessFunctionAstNode()
             is VarUsageExpr -> FunctionCallAstLeaf(exp.variableName, emptyList())
 //                    is Operator ->

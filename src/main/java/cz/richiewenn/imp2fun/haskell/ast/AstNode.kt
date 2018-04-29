@@ -10,6 +10,17 @@ interface Ast {
     }
     var parent: AstNode?
     val id: Int
+    val depth: Int
+        get() {
+            var n: Ast? = this
+            var i = 0
+            while (n?.parent != null) {
+                i++
+                n = n.parent
+            }
+            return i
+        }
+
     fun print(): String
     fun printCode(): String
     fun getDotLinkSources(): Node
@@ -17,8 +28,13 @@ interface Ast {
 }
 
 open class AstNode(
-    val children: List<Ast>
+    children: MutableList<Ast>
 ) : Ast {
+    var children = children
+        set(value) {
+            field = value
+            this.children.forEach { it.parent = this }
+        }
     override var parent: AstNode? = null
     init {
         this.children.forEach { it.parent = this }
@@ -32,6 +48,19 @@ open class AstNode(
     override fun printCode() = """
 ${this.children.joinToString(lineSeparator()) { it.printCode() }}
 """.trimIndent()
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is AstNode) return false
+
+        if (id != other.id) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return id
+    }
 }
 
 open class AstLeaf : Ast {
@@ -40,6 +69,19 @@ open class AstLeaf : Ast {
     override val id = Ast.lastId++
     override fun print() = "\"${this.javaClass.simpleName}\""
     override fun printCode() = ""
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is AstNode) return false
+
+        if (id != other.id) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return id
+    }
 }
 
 

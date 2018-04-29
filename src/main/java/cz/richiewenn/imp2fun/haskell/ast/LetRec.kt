@@ -3,9 +3,9 @@ package cz.richiewenn.imp2fun.haskell.ast
 data class LetRec(
     val variableName: String,
     var variableAssignment: Ast, // FunctionCallAstLeaf or ConstantAstLeaf
-    val inBody: Ast
+    var inBody: Ast
 ): AstNode(
-    listOf(variableAssignment, inBody)
+    mutableListOf(variableAssignment, inBody)
 ) {
     override fun print(): String {
         return "${this.javaClass.simpleName} $variableName"

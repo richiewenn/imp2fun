@@ -20,18 +20,13 @@ public class Fibonacci {
 val primes = """
 public class Prime {
     public int prime() {
-        int nth = 20;
-        int num = 1;
-        int count = 0;
-        for(; count < nth; num = num + 1) {
-            int i = 2;
-            for(; num%i != 0; i = i + 1);
-
-            if(i == num) {
-                count = count + 1;
+        int a = 0;
+        for (int i = 0; i < 10; i = i + 1) {
+            for (int j = 0; j < 10; j = j + 1) {
+                a = i + j;
             }
         }
-        return num;
+        return a;
     }
 }
         """.trimIndent()

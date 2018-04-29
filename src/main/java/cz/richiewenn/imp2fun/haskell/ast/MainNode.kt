@@ -3,7 +3,7 @@ package cz.richiewenn.imp2fun.haskell.ast
 data class MainNode(
     val body: Ast
 ) : AstNode(
-    listOf(body)
+    mutableListOf(body)
 ) {
     override fun print() = "mainFunction"
     override fun printCode() = """

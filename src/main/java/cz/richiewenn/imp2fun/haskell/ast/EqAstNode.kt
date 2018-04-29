@@ -7,7 +7,7 @@ data class BinaryAstNode(
     val right: Ast,
     val operator: Operator
 ): AstNode(
-    listOf(left, right)
+    mutableListOf(left, right)
 ) {
     override fun print() = "${left.print()} ${operator.value} ${right.print()}"
     override fun printCode() = "${left.printCode()} ${operator.value} ${right.printCode()}"
