@@ -8,7 +8,7 @@ data class LetRec(
     mutableListOf(variableAssignment, inBody)
 ) {
     override fun print(): String {
-        return "${this.javaClass.simpleName} $variableName"
+        return "let $variableName = ${variableAssignment.print()} in"
     }
 
     override fun printCode(): String {

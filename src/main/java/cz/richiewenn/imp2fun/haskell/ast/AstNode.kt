@@ -39,7 +39,7 @@ open class AstNode(
     init {
         this.children.forEach { it.parent = this }
     }
-    override fun getDotLinkSources(): Node = node("${this.id} ${this.print()}").link(*this.children.map{ it.getDotLinkSources() }.toTypedArray())
+    override fun getDotLinkSources(): Node = node("[$id] ${this.print()}").link(*this.children.map{ it.getDotLinkSources() }.toTypedArray())
     override val id = Ast.lastId++
     override fun toString(): String {
         return "AstNode(children=$children)"
@@ -65,7 +65,7 @@ ${this.children.joinToString(lineSeparator()) { it.printCode() }}
 
 open class AstLeaf : Ast {
     override var parent: AstNode? = null
-    override fun getDotLinkSources(): Node = node("${this.id} ${this.print()}")
+    override fun getDotLinkSources(): Node = node("[$id] ${this.print()}")
     override val id = Ast.lastId++
     override fun print() = "\"${this.javaClass.simpleName}\""
     override fun printCode() = ""

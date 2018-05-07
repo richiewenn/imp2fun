@@ -19,9 +19,7 @@ class RonCytronsPhiFiller {
     private val work = HashMap<Int, Int>()
     private var w: HashSet<Edge> = HashSet()
 
-    fun fill(root: Node): Node {
-        this.insertPhiFunctions(root)
-
+    fun renameVariables(root: Node): Node {
         depthFirstSearch(root) {
             it.outEdges.forEach {
                 it.exp.getVarDefExprs()
@@ -39,7 +37,7 @@ class RonCytronsPhiFiller {
         return root
     }
 
-    private fun insertPhiFunctions(node: Node) {
+    fun insertPhiFunctions(node: Node): Node {
         var iterCount = 0
         // For each node (edge) X do
         depthFirstEdgeSearch(node) { x: Edge ->
@@ -88,6 +86,8 @@ class RonCytronsPhiFiller {
                 }
             }
         }
+
+        return node
     }
 
     private fun placePhiFunctionAt(y: Edge, variable: String) {

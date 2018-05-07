@@ -25,12 +25,7 @@ object HaskellAstConverter {
             }
 
             val nodes = mapNode(currentRoot, 0) // This must be executed early so the globalFunctions are populated
-//            val gf = this.globalFunctions
-//                    .groupBy { it.name }
-//                    .values
-//                    .map {
-//                        it.maxBy { it.size }!!
-//                    }
+
             // Go up and find what argument names should be used to call this phi functions
             fun getVarName(parent: Ast?, arg: String): String? {
                 if (parent == null) {
@@ -60,6 +55,18 @@ object HaskellAstConverter {
                 }.filterNotNull()
             }
 
+            // Remove duplicates
+            val uniqueFunctions = globalFunctions
+                .groupBy { it.first.name }
+                .map {
+                    return@map if(it.value.size > 1) {
+                        it.value.filterNot { it.first.body is AstLeaf }.first()
+                    } else {
+                        it.value.first()
+                    }
+                }
+                .toMutableList()
+            globalFunctions = uniqueFunctions
             fun insertFunctions(node: Ast) {
                 val needToInsert = globalFunctions.filter { it.second == node }.map { it.first }.distinct()
                 globalFunctions = globalFunctions.filterNot { needToInsert.any { insert -> insert.name == it.first.name }}.toMutableList()
@@ -71,8 +78,6 @@ object HaskellAstConverter {
                         }
                         leaf(needToInsert.first()).theRest = n
                     }
-
-
 
                     fun goUpAndFindDef(n: AstNode): LetRec {
                         return if(n is LetRec) {
@@ -123,7 +128,6 @@ object HaskellAstConverter {
         }
     }
 
-
     fun mapEdge(edge: Edge, level: Int): List<Ast> {
         val exp = edge.exp
         val nodes = mapNode(edge.node, level+1)
@@ -137,12 +141,12 @@ object HaskellAstConverter {
                 LetRec((exp.target as VarDefExpr).name, mapExpression(exp.value, level+1), FunctionCallAstLeaf(exp.target.name))
             }
             is PhiExpressions -> {
-                val funName = "phi_${edge.id}"
+                val funName = "fun_${edge.id}"
                 val index = this.globalFunctions.count { it.first.name == funName }
                 val defArgs = exp.phis.filter { it.vars.size > index }.map { it.target.name }
                 val f = FunctionAstNode(funName, defArgs, nodes.first())
                 val args = exp.phis.filter { it.vars.size > index }.map { it.vars[index] }.toList()
-                val phiFun = FunctionCallAstLeaf("phi_${edge.id}", args = args)
+                val phiFun = FunctionCallAstLeaf("fun_${edge.id}", args = args)
                 this.globalFunctions.add(Pair(f, phiFun))
                 this.phiCalls.add(Pair(phiFun, exp))
                 phiFun

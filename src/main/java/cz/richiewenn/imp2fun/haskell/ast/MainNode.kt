@@ -7,7 +7,7 @@ data class MainNode(
 ) {
     override fun print() = "mainFunction"
     override fun printCode() = """
-mainFunction = ${body.printCode()}
+mainFunction = ${body.printCode().replace("\n", " ").replace("  ", " ").replace("  ", " ").replace("  ", " ")}
 main = putStrLn (show (mainFunction))
     """.trimIndent()
 }

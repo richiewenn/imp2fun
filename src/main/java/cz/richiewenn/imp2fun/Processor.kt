@@ -1,13 +1,11 @@
-package cz.richiewenn.imp2fun.filters
+package cz.richiewenn.imp2fun
 
 import com.github.javaparser.JavaParser
-import cz.richiewenn.imp2fun.*
 import cz.richiewenn.imp2fun.cfg.Node
 import cz.richiewenn.imp2fun.haskell.ast.Ast
 import guru.nidi.graphviz.engine.Format
 import guru.nidi.graphviz.engine.Graphviz
 import guru.nidi.graphviz.model.Factory.graph
-import guru.nidi.graphviz.model.Factory.node
 import java.io.File
 import com.github.javaparser.ast.Node as AstNode
 
@@ -29,8 +27,11 @@ val removeJumps: (Node) -> (Node) = {
 val dominanceFrontiers: (Node) -> (Node) = {
     DominanceFrontiers.fill(it)
 }
-val phiFunctions: (Node) -> (Node) = {
-    RonCytronsPhiFiller().fill(it)
+val insertPhiFunctions: (Node) -> (Node) = {
+    RonCytronsPhiFiller().insertPhiFunctions(it)
+}
+val renameVariables: (Node) -> (Node) = {
+    RonCytronsPhiFiller().renameVariables(it)
 }
 val phiFunctionsOptimizer: (Node) -> (Node) = {
     PhiFunctionOptimizer().optimize(it)
@@ -68,17 +69,31 @@ private operator fun Ast.plus(f: (Ast) -> Ast): Ast {
 }
 
 fun main(args: Array<String>) {
-    val result = astPreprocessor(primes) +
-    cfgPreprocessor +
-    fillInEdges +
-    removeJumps +
-    printDot +
-    dominanceFrontiers +
-    phiFunctions +
-    phiFunctionsOptimizer +
-    printDot +
-    convertToHaskellAst +
-    printAstDot
+    val code = """public class Prime {
+    public int prime() {
+        int a = 0;
+        for (int i = 0; i < 10; i = i + 1) {
+            int b= 0;
+            if(i == 9) {
+                a = 1;
+            }
+        }
+        return a;
+    }
+}"""
+
+    val result = astPreprocessor(code) +
+        cfgPreprocessor +
+        fillInEdges +
+        removeJumps +
+        printDot +
+        dominanceFrontiers +
+        insertPhiFunctions +
+        phiFunctionsOptimizer +
+        renameVariables +
+        printDot +
+        convertToHaskellAst +
+        printAstDot
 
     println("-----------------------")
     println(result.printCode())
