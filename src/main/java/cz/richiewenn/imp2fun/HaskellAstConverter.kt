@@ -79,19 +79,25 @@ object HaskellAstConverter {
                         leaf(needToInsert.first()).theRest = n
                     }
 
-                    fun goUpAndFindDef(n: AstNode): LetRec {
-                        return if(n is LetRec) {
+                    fun goUpAndFindDef(n: AstNode): AstNode {
+                        return if(n is LetRec || n is FunctionAstNode) {
                             n
                         } else {
                             goUpAndFindDef(n.parent!!)
                         }
                     }
                     val n = goUpAndFindDef(node.parent!!)
+                    if(n is LetRec) {
+                        leaf(needToInsert.first()).theRest = n.inBody
 
-                    leaf(needToInsert.first()).theRest = n.inBody
+                        n.children = mutableListOf(n.variableAssignment, needToInsert.first())
+                        n.inBody = needToInsert.first()
+                    } else if(n is FunctionAstNode) {
+                        leaf(needToInsert.first()).theRest = n.body
 
-                    n.children = mutableListOf(n.variableAssignment, needToInsert.first())
-                    n.inBody = needToInsert.first()
+                        n.children = mutableListOf(n.body, needToInsert.first())
+                        n.body = needToInsert.first()
+                    }
                 }
                 if(node is AstNode) {
                     node.children.forEach { insertFunctions(it) }

@@ -9,7 +9,7 @@ import java.lang.System.lineSeparator
 data class FunctionAstNode(
     val name: String,
     val args: List<String>,
-    val body: Ast
+    var body: Ast
 ) : AstNode(
     mutableListOf(body)
 ) {

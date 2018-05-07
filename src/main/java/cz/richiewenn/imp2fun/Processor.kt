@@ -73,7 +73,6 @@ fun main(args: Array<String>) {
     public int prime() {
         int a = 0;
         for (int i = 0; i < 10; i = i + 1) {
-            int b= 0;
             if(i == 9) {
                 a = 1;
             }
