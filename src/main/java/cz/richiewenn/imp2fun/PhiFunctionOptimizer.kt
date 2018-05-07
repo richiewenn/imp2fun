@@ -25,35 +25,6 @@ class PhiFunctionOptimizer {
     private fun isThereAnUsagesOf(target: VarDefExpr, edge: Edge, originalEdge: Edge, root: Node): Boolean {
         val usages = countUsagesOf(target, edge, originalEdge)
         return usages.RHS > 0
-//
-// val depth = depthFromRoot(root, originalEdge)
-//        val isThere = edge.node?.outEdges
-////            ?.filter { depthFromRoot(root, it) > depth }
-//            ?.any {
-//                it.exp.getVarUsageExprs()
-//                    .any { getOriginalName(it.variableName) == getOriginalName(target.name) }
-//            }
-//            ?: false
-//        if (isThere) {
-//            return true
-//        } else if (edge.node?.outEdges?.all { it.exp is PhiExpressions } == true) {
-//            return false
-//        } else {
-//            return edge.node?.outEdges?.filterNot { it.exp is PhiExpressions }?.any { isThereAnUsagesOf(target, it, originalEdge, root) }
-//                ?: false
-//        }
-    }
-
-    fun depthFromRoot(root: Node, edge: Edge): Int {
-        fun f(e: List<Edge>, depth: Int): Int {
-            return if (e.any { it == edge }) {
-                depth
-            } else {
-                val children = e.mapNotNull { it.node?.outEdges }.flatMap { it }
-                f(children, depth + 1)
-            }
-        }
-        return f(root.outEdges, 0)
     }
 
     private fun countUsagesOf(target: VarDefExpr, e: Edge, originalEdge: Edge): Usages {

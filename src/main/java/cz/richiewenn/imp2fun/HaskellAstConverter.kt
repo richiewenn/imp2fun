@@ -29,7 +29,7 @@ object HaskellAstConverter {
             // Go up and find what argument names should be used to call this phi functions
             fun getVarName(parent: Ast?, arg: String): String? {
                 if (parent == null) {
-                    return arg+"_WRONG"
+                    return arg + "_NOTRESOLVABLEYET"
                 }
                 if (parent is LetRec) {
                     if (getOriginalName(parent.variableName) == getOriginalName(arg)) {
@@ -38,8 +38,8 @@ object HaskellAstConverter {
                         return getVarName(parent.parent, arg)
                     }
                 } else if (parent is FunctionAstNode) {
-                    if(parent.args.any { getOriginalName(it) == getOriginalName(arg)}) {
-                        return parent.args.find { getOriginalName(it) == getOriginalName(arg)}!!
+                    if (parent.args.any { getOriginalName(it) == getOriginalName(arg) }) {
+                        return parent.args.find { getOriginalName(it) == getOriginalName(arg) }!!
                     } else {
                         return getVarName(parent.parent, arg)
                     }
@@ -47,7 +47,7 @@ object HaskellAstConverter {
                     return getVarName(parent.parent, arg)
                 }
             }
-            this.phiCalls.forEach {phi ->
+            this.phiCalls.forEach { phi ->
                 phi.first.args = phi.first.args.map { arg ->
                     val parent = phi.first.parent
                     val name = getVarName(parent, arg)
@@ -59,7 +59,7 @@ object HaskellAstConverter {
             val uniqueFunctions = globalFunctions
                 .groupBy { it.first.name }
                 .map {
-                    return@map if(it.value.size > 1) {
+                    return@map if (it.value.size > 1) {
                         it.value.filterNot { it.first.body is AstLeaf }.first()
                     } else {
                         it.value.first()
@@ -69,43 +69,57 @@ object HaskellAstConverter {
             globalFunctions = uniqueFunctions
             fun insertFunctions(node: Ast) {
                 val needToInsert = globalFunctions.filter { it.second == node }.map { it.first }.distinct()
-                globalFunctions = globalFunctions.filterNot { needToInsert.any { insert -> insert.name == it.first.name }}.toMutableList()
-                if(needToInsert.isNotEmpty()) {
+                globalFunctions = globalFunctions.filterNot { needToInsert.any { insert -> insert.name == it.first.name } }.toMutableList()
+                if (needToInsert.isNotEmpty()) {
                     fun leaf(a: FunctionAstNode): FunctionAstNode = if (a.theRest == null) a else leaf(a.theRest as FunctionAstNode)
                     needToInsert.forEachIndexed { index, n ->
-                        if(index == 0) {
+                        if (index == 0) {
                             return@forEachIndexed
                         }
                         leaf(needToInsert.first()).theRest = n
                     }
 
                     fun goUpAndFindDef(n: AstNode): AstNode {
-                        return if(n is LetRec || n is FunctionAstNode) {
+                        return if (n is LetRec || n is FunctionAstNode) {
                             n
                         } else {
                             goUpAndFindDef(n.parent!!)
                         }
                     }
+
                     val n = goUpAndFindDef(node.parent!!)
-                    if(n is LetRec) {
+                    if (n is LetRec) {
                         leaf(needToInsert.first()).theRest = n.inBody
 
                         n.children = mutableListOf(n.variableAssignment, needToInsert.first())
                         n.inBody = needToInsert.first()
-                    } else if(n is FunctionAstNode) {
+                    } else if (n is FunctionAstNode) {
                         leaf(needToInsert.first()).theRest = n.body
 
                         n.children = mutableListOf(n.body, needToInsert.first())
                         n.body = needToInsert.first()
                     }
                 }
-                if(node is AstNode) {
+                if (node is AstNode) {
                     node.children.forEach { insertFunctions(it) }
                 }
 
             }
             while (globalFunctions.isNotEmpty()) {
                 insertFunctions(nodes.first())
+            }
+
+            // There may be some _NOTRESOLVABLEYET variables left from first tree walk, let's resolve them now
+            this.phiCalls.forEach { phi ->
+                phi.first.args = phi.first.args
+                    .mapNotNull { arg ->
+                        return@mapNotNull if(arg.endsWith("_NOTRESOLVABLEYET")) {
+                            val parent = phi.first.parent
+                            getVarName(parent, arg.removeSuffix("_NOTRESOLVABLEYET"))
+                        } else {
+                            arg
+                        }
+                    }
             }
 
             return MainNode(nodes.first())
@@ -116,17 +130,17 @@ object HaskellAstConverter {
     fun mapNode(node: Node?, level: Int): List<Ast> {
         if (node == null || iHaveBeenThere.contains(node.id)) {
             val first = node?.outEdges?.firstOrNull()
-            if(first != null && (first.exp is PhiExpression || first.exp is PhiExpressions)) {
+            if (first != null && (first.exp is PhiExpression || first.exp is PhiExpressions)) {
                 return mapEdge(first, level)
             }
             return listOf(AstLeaf())
         }
         iHaveBeenThere.add(node.id)
         return if (node.outEdges.size == 2 && node.outEdges[0].exp is OtherwiseExpr && node.outEdges[1].exp is BinaryExpr) {
-            val otherwise = mapNode(node.outEdges[0].node, level+1)
+            val otherwise = mapNode(node.outEdges[0].node, level + 1)
             IfElseExpressionAstNode(
-                condition = mapExpression(node.outEdges[1].exp, level+1),
-                ifBody = mapNode(node.outEdges[1].node, level+1)[0],
+                condition = mapExpression(node.outEdges[1].exp, level + 1),
+                ifBody = mapNode(node.outEdges[1].node, level + 1)[0],
                 elseBody = otherwise[0]
             ) + otherwise
         } else {
@@ -136,15 +150,15 @@ object HaskellAstConverter {
 
     fun mapEdge(edge: Edge, level: Int): List<Ast> {
         val exp = edge.exp
-        val nodes = mapNode(edge.node, level+1)
+        val nodes = mapNode(edge.node, level + 1)
         return listOf(when (exp) {
             is ConstantExpr -> ConstantAstLeaf(exp.value)
-            //(exp.target as VarDefExpr).name, mapExpression(exp.value)
+        //(exp.target as VarDefExpr).name, mapExpression(exp.value)
             is ReturnExpr -> FunctionCallAstLeaf(exp.returnExpr.variableName, emptyList())
-            is VarAssignExpr -> if(nodes.isNotEmpty()) {
-                LetRec((exp.target as VarDefExpr).name, mapExpression(exp.value, level+1), nodes.first())
+            is VarAssignExpr -> if (nodes.isNotEmpty()) {
+                LetRec((exp.target as VarDefExpr).name, mapExpression(exp.value, level + 1), nodes.first())
             } else {
-                LetRec((exp.target as VarDefExpr).name, mapExpression(exp.value, level+1), FunctionCallAstLeaf(exp.target.name))
+                LetRec((exp.target as VarDefExpr).name, mapExpression(exp.value, level + 1), FunctionCallAstLeaf(exp.target.name))
             }
             is PhiExpressions -> {
                 val funName = "fun_${edge.id}"
@@ -175,14 +189,15 @@ object HaskellAstConverter {
         fun search(target: String): String {
             val currentNode = queue.poll() ?: throw TODO() // I mean, this should not happen, I think...
             fun getOriginalNameFromExpr(variable: Expr): String {
-                return getOriginalName(when(variable) {
+                return getOriginalName(when (variable) {
                     is VarDefExpr -> variable.name
                     is VarAssignExpr -> getOriginalNameFromExpr(variable.target)
                     else -> ""
                 })
             }
+
             fun getNameFromExpr(variable: Expr): String {
-                return when(variable) {
+                return when (variable) {
                     is VarDefExpr -> variable.name
                     is VarAssignExpr -> getNameFromExpr(variable.target)
                     else -> ""
@@ -192,8 +207,8 @@ object HaskellAstConverter {
             val definition = currentNode.outEdges.find {
                 it.exp is VarAssignExpr && getOriginalNameFromExpr(it.exp) == getOriginalName(target)
             }
-            return if(definition == null) { //continue search
-                currentNode.inEdges.forEach{ queue.add(it.node) }
+            return if (definition == null) { //continue search
+                currentNode.inEdges.forEach { queue.add(it.node) }
                 search(target)
             } else {
                 getNameFromExpr(definition.exp)
@@ -206,9 +221,9 @@ object HaskellAstConverter {
     fun mapExpression(exp: Expr, level: Int): Ast {
         return when (exp) {
             is ConstantExpr -> ConstantAstLeaf(exp.value)
-            is VarAssignExpr -> ArgumentlessFunctionAstNode((exp.target as VarDefExpr).name, mapExpression(exp.value, level+1))
+            is VarAssignExpr -> ArgumentlessFunctionAstNode((exp.target as VarDefExpr).name, mapExpression(exp.value, level + 1))
 //            is VarDefExpr ->
-            is BinaryExpr -> BinaryAstNode(mapExpression(exp.left, level+1), mapExpression(exp.right, level+1), exp.operator)
+            is BinaryExpr -> BinaryAstNode(mapExpression(exp.left, level + 1), mapExpression(exp.right, level + 1), exp.operator)
             is OtherwiseExpr -> AstLeaf() //ArgumentlessFunctionAstNode()
             is VarUsageExpr -> FunctionCallAstLeaf(exp.variableName, emptyList())
 //                    is Operator ->

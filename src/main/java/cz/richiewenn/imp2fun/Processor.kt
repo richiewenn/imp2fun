@@ -36,6 +36,9 @@ val renameVariables: (Node) -> (Node) = {
 val phiFunctionsOptimizer: (Node) -> (Node) = {
     PhiFunctionOptimizer().optimize(it)
 }
+val phiFunctionsArgumentOptimizer: (Node) -> (Node) = {
+    PhiFunctionArgumentOptimizer().optimize(it)
+}
 val printDot: (Node) -> (Node) = {
     println("---------")
     println(DotConverter().convert(it).joinToString(System.lineSeparator()))
@@ -73,8 +76,8 @@ fun main(args: Array<String>) {
     public int prime() {
         int a = 0;
         for (int i = 0; i < 10; i = i + 1) {
-            if(i == 9) {
-                a = 1;
+            for(int j = 0; j < 20; j = j + 1) {
+                a = 2;
             }
         }
         return a;
@@ -89,6 +92,7 @@ fun main(args: Array<String>) {
         dominanceFrontiers +
         insertPhiFunctions +
         phiFunctionsOptimizer +
+        phiFunctionsArgumentOptimizer +
         renameVariables +
         printDot +
         convertToHaskellAst +
