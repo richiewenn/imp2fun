@@ -24,7 +24,7 @@ object Ast2Cfg {
                 "ElseStmt" -> elseToCFG(node)
                 "BlockStmt" -> toCFG(node.childNodes)
                 "ReturnStmt" -> Node(Edge(Node(), ReturnExpr(((node as ReturnStmt).expression.orElseThrow {RuntimeException()} as NameExpr).nameAsString )))
-                else -> Node()
+                else -> TODO(node.metaModel.typeName)
             }
         }.reduce { left, right -> left.plusLeft(right)}
     }
@@ -71,7 +71,7 @@ object Ast2Cfg {
 class For(def: List<AstNode>) {
     val defI = def.find { it is VariableDeclarationExpr }?.toCfg()
     val condition = def.find { it is BinaryExpr }?.toCfg()?.outEdges?.first()
-    val ipp: AssignExpr? = def.find { it is AssignExpr } as? AssignExpr?
+    val ipp: Expression? = def.find { it is AssignExpr || it is UnaryExpr } as? Expression?
     val blockBody = def.find { it is BlockStmt }?.toCfg()
     val isEmptyBody = def.find { it is EmptyStmt } != null
 

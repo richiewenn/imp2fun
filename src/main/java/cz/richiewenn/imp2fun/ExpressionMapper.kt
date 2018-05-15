@@ -16,6 +16,25 @@ object ExpressionMapper {
             is NameExpr -> VarUsageExpr(source.name.identifier)
             is ArrayCreationExpr -> ArrCreationExpr()
             is ArrayAccessExpr -> ArrUsageExpr(this.map(source.name).toString(), this.map(source.index))
+            is UnaryExpr -> when(source.operator) {
+                UnaryExpr.Operator.POSTFIX_INCREMENT -> VarAssignExpr(
+                    target = VarDefExpr(source.expression.asNameExpr().nameAsString),
+                    value = cz.richiewenn.imp2fun.expressions.BinaryExpr(
+                        left = cz.richiewenn.imp2fun.expressions.VarUsageExpr(source.expression.asNameExpr().nameAsString),
+                        right = cz.richiewenn.imp2fun.expressions.ConstantExpr("1"),
+                        operator = Operator.PLUS
+                    )
+                )
+                UnaryExpr.Operator.POSTFIX_DECREMENT -> VarAssignExpr(
+                    target = VarDefExpr(source.expression.asNameExpr().nameAsString),
+                    value = cz.richiewenn.imp2fun.expressions.BinaryExpr(
+                        left = cz.richiewenn.imp2fun.expressions.VarUsageExpr(source.expression.asNameExpr().nameAsString),
+                        right = cz.richiewenn.imp2fun.expressions.ConstantExpr("1"),
+                        operator = Operator.MINUS
+                    )
+                )
+                else -> TODO(source.operator.toString())
+            }
             else -> TODO(source.toString())
         }
     }
