@@ -4,7 +4,6 @@ import cz.richiewenn.imp2fun.cfg.Edge
 import cz.richiewenn.imp2fun.cfg.Node
 import cz.richiewenn.imp2fun.expressions.PhiExpression
 import cz.richiewenn.imp2fun.expressions.PhiExpressions
-import cz.richiewenn.imp2fun.expressions.VarAssignExpr
 import cz.richiewenn.imp2fun.expressions.VarDefExpr
 import java.util.*
 import kotlin.collections.HashMap
@@ -31,7 +30,7 @@ class RonCytronsPhiFiller {
             }
         }
 
-        val dominanceTree = DominanceTree().dominanceNodeTree(root)
+        val dominanceTree = DominatorTree().dominanceNodeTree(root)
         search(dominanceTree)
 
         return root

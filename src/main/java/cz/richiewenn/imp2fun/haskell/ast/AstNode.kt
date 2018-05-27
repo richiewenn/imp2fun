@@ -23,6 +23,7 @@ interface Ast {
 
     fun print(): String
     fun printCode(): String
+    fun printBeautifulCode(parent: Ast? = null, offset: Int = 0): String = this.printCode()
     fun getDotLinkSources(): Node
     operator fun plus(list: List<Ast>) = listOf(this)+list
 }
@@ -48,6 +49,9 @@ open class AstNode(
     override fun printCode() = """
 ${this.children.joinToString(lineSeparator()) { it.printCode() }}
 """.trimIndent()
+    override fun printBeautifulCode(parent: Ast?, offset: Int) = """
+${this.children.joinToString(lineSeparator()) { it.printBeautifulCode(this) }}
+"""
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

@@ -22,7 +22,7 @@ data class DTNode(
     }
 }
 
-class DominanceTree {
+class DominatorTree {
     fun dominanceTree(node: Node): Set<Pair<Int, Int>> {
         remarkIds(node)
         node.resetColors()

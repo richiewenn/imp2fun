@@ -22,10 +22,10 @@ fun main(args: Array<String>) {
     )
 
 
-    val filledCfg = CfgInEdgesFiller().fill(cfg)
+    val filledCfg = CfgIncomingEdgesFiller().fill(cfg)
 //    println(DotConverter().convert(filledCfg).joinToString(System.lineSeparator()))
 //    println("--------------------")
-    val dom = DominanceTree().dominanceTree(filledCfg)
+    val dom = DominatorTree().dominanceTree(filledCfg)
     println(dom.map { "${it.first}->${it.second}" }.joinToString(System.lineSeparator()))
     println("--------------------")
 //    println(DotConverter().convert(filledCfg).joinToString(System.lineSeparator()))

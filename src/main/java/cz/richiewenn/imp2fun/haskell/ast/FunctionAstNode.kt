@@ -4,7 +4,6 @@ import guru.nidi.graphviz.model.Factory
 import guru.nidi.graphviz.model.Factory.node
 import guru.nidi.graphviz.model.Label
 import guru.nidi.graphviz.model.Node
-import java.lang.System.lineSeparator
 
 data class FunctionAstNode(
     val name: String,
@@ -16,7 +15,7 @@ data class FunctionAstNode(
     var theRest: Ast? = null
         set(value) {
             field = value
-            if(value != null)
+            if (value != null)
                 this.children = (this.children + value).toMutableList()
         }
 
@@ -26,6 +25,25 @@ let $name ${args.joinToString(" ")} = ${body.printCode()}
 in
 ${theRest?.printCode() ?: ""}
     """.trimIndent()
+
+    override fun printBeautifulCode(parent: Ast?, offset: Int): String {
+        val argsCode = args.joinToString(" ")
+        val offsetBase = offset
+        val printIn = (theRest !is LetRec && theRest !is FunctionAstNode)
+        return if(parent is LetRec || parent is FunctionAstNode) {
+            val offsetSpaces = " ".repeat(if(printIn) offset-1 else offset+3)
+            """
+$name $argsCode = ${body.printBeautifulCode(this, offsetBase)}
+$offsetSpaces${if(printIn) "in" else ""} ${theRest?.printBeautifulCode(this, offsetBase) ?: ""}
+"""
+        } else {
+            val offsetSpaces = " ".repeat(if(printIn) offset-4 else offset)
+            """
+let $name $argsCode = ${body.printBeautifulCode(this, offsetBase+3)}
+$offsetSpaces${if(printIn) "in" else ""}${theRest?.printBeautifulCode(this, offsetBase+3) ?: ""}
+"""
+        }.trimStart().trimEnd()
+    }
 
     override fun getDotLinkSources(): Node = node("[$id] ${this.print()}")
         .link(Factory.to(this.body.getDotLinkSources()).with(Label.of("body")))
@@ -63,7 +81,17 @@ data class FunctionCallAstLeaf(
     constructor(name: String) : this(name, emptyList())
 
     override fun print() = if (args.isNotEmpty()) "call $name(${args.joinToString(", ")})" else "call $name"
-    override fun printCode() = """
-($name ${args.map { it }.joinToString(" ")})
-    """.trimIndent()
+    override fun printCode() = if (args.isEmpty()) {
+        """$name"""
+    } else {
+        """($name ${args.joinToString(" ") { it }})"""
+    }
+
+    override fun printBeautifulCode(parent: Ast?, offset: Int): String {
+        return if (args.isEmpty()) {
+            """$name"""
+        } else {
+            """($name ${args.joinToString(" ") { it }})"""
+        }
+    }
 }

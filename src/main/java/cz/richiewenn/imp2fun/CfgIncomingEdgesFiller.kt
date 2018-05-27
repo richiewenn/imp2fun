@@ -4,7 +4,7 @@ import cz.richiewenn.imp2fun.cfg.Edge
 import cz.richiewenn.imp2fun.cfg.Node
 import java.util.*
 
-class CfgInEdgesFiller {
+class CfgIncomingEdgesFiller {
     private val stack: Stack<Node> = Stack()
     private val edges = HashMap<Node, Set<Edge>>() // to, from
 

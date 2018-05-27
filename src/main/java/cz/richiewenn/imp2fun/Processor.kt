@@ -19,7 +19,7 @@ val cfgPreprocessor: (AstNode) -> Node = {
     Ast2Cfg.toCFG(it)
 }
 val fillInEdges: (Node) -> (Node) = {
-    CfgInEdgesFiller().fill(it)
+    CfgIncomingEdgesFiller().fill(it)
 }
 val removeJumps: (Node) -> (Node) = {
     CfgJumpOptimizer().optimize(it)
@@ -72,8 +72,8 @@ private operator fun Ast.plus(f: (Ast) -> Ast): Ast {
 }
 
 fun main(args: Array<String>) {
-    val code = """public class Prime {
-    public int prime() {
+    val code = """public class Simple {
+    public int simple() {
         int a = 0;
         for (int i = 0; i < 10; i++) {
             for(int j = 0; j < 20; j = j + 1) {
@@ -86,20 +86,25 @@ fun main(args: Array<String>) {
 
     val result = astPreprocessor(code) +
         cfgPreprocessor +
+//        printDot +
         fillInEdges +
         removeJumps +
-        printDot +
+//        printDot +
         dominanceFrontiers +
         insertPhiFunctions +
         phiFunctionsOptimizer +
         phiFunctionsArgumentOptimizer +
         renameVariables +
-        printDot +
-        convertToHaskellAst +
-        printAstDot
+//        printDot +
+        convertToHaskellAst
+//        printAstDot
 
     println("-----------------------")
     println(result.printCode())
+    println("-----------------------")
+    println(result.printBeautifulCode())
+
+    Thread.sleep(50) // Just to let prints finish before getting the intellij message to console
 }
 
 // Argumenty funkci jsou veci v phi funkcich

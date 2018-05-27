@@ -1,6 +1,7 @@
 package cz.richiewenn.imp2fun
 
 import com.github.javaparser.JavaParser
+import cz.richiewenn.imp2fun.tests.Simple
 import com.github.javaparser.ast.Node as AstNode
 
 val fibonacci = """
@@ -71,6 +72,7 @@ public class Simple {
 """
 
 fun main(args: Array<String>) {
+    val a = Simple().simple()
 
 //    val cu = JavaParser.parse(simple)
     val cu = JavaParser.parse(fibonacci)
@@ -87,7 +89,7 @@ fun main(args: Array<String>) {
     println("--------------------cfg")
     println(cfgResult)
 
-    val filledCfg = CfgInEdgesFiller().fill(cfg)
+    val filledCfg = CfgIncomingEdgesFiller().fill(cfg)
     val filledCfgResult = DotConverter().convert(filledCfg).joinToString(System.lineSeparator())
     println("--------------------filledCfg")
     println(filledCfgResult)
@@ -109,7 +111,7 @@ fun main(args: Array<String>) {
     val withFrontiers = DominanceFrontiers.fill(filledCfg)
     val result4 = DotConverter().convert(withFrontiers).joinToString(System.lineSeparator())
     println("--------------------dominanceTree")
-    println(DominanceTree().dominanceTree(filledCfg).map { "${it.first}->${it.second}"}.joinToString(System.lineSeparator()))
+    println(DominatorTree().dominanceTree(filledCfg).map { "${it.first}->${it.second}"}.joinToString(System.lineSeparator()))
     println("--------------------withFrontiers")
     println(result4)
     println("--------------------Dominance Frontiers")

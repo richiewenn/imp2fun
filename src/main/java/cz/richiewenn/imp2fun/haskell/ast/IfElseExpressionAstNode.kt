@@ -19,23 +19,17 @@ if ${condition.printCode()}
   else ${elseBody.printCode()}
 """.trimIndent()
 
+    override fun printBeautifulCode(parent: Ast?, offset: Int): String {
+        val offsetSpaces = " ".repeat(offset+3)
+        return """
+if ${condition.printBeautifulCode(this)}
+${offsetSpaces}then ${ifBody.printBeautifulCode(this, offset+8)}
+${offsetSpaces}else ${elseBody.printBeautifulCode(this, offset+8)}
+""".trimStart().trimEnd()
+    }
+
     override fun getDotLinkSources(): Node = Factory.node("[$id] ${this.print()}")
         .link(Factory.to(this.condition.getDotLinkSources()).with(Label.of("if")))
         .link(Factory.to(this.ifBody.getDotLinkSources()).with(Label.of("then")))
         .link(Factory.to(this.elseBody.getDotLinkSources()).with(Label.of("else")))
-}
-
-data class IfElseAssignmentAstNode(
-    val condition: Ast,
-    val target: String,
-    val ifValue: String,
-    val elseValue: String
-): AstNode(
-    mutableListOf(condition)
-) {
-    override fun print() = "\"${this.javaClass.simpleName}\""
-    override fun printCode() = """
-$target -> if ${condition.printCode()} = $ifValue
-else = $elseValue
-""".trimIndent()
 }

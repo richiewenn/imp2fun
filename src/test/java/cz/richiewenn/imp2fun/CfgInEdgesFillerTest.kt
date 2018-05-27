@@ -11,7 +11,7 @@ internal class CfgInEdgesFillerTest {
     fun `Fill simple graph`() {
         val graph = Node(1, Node(2))
 
-        val filledGraph = CfgInEdgesFiller().fill(graph)
+        val filledGraph = CfgIncomingEdgesFiller().fill(graph)
 
         val inEdges = filledGraph.outEdges.first().node?.inEdges
 
