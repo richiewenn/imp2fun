@@ -31,7 +31,10 @@ class RonCytronsPhiFiller {
         }
 
         val dominanceTree = DominatorTree().dominanceNodeTree(root)
-        search(dominanceTree)
+        processingQueue.add(dominanceTree)
+        while (processingQueue.isNotEmpty()) {
+            this.search()
+        }
 
         return root
     }
@@ -128,8 +131,11 @@ class RonCytronsPhiFiller {
         }
     }
 
-
-    private fun search(dtNode: DTNode) {
+    var processingQueue = ArrayList<DTNode>()
+    private fun search() {
+        processingQueue.sortBy { it.node.inEdges.size }
+        val dtNode = processingQueue.first()
+        processingQueue.remove(dtNode)
         dtNode.node.outEdges.forEach { edge ->
             edge.exp.getVarUsageExprs()
                 .filter { it.variableName == getOriginalName(it.variableName) }
@@ -160,7 +166,7 @@ class RonCytronsPhiFiller {
                     }
                 }
         }
-        dtNode.children.forEach(this::search)
+        processingQueue.addAll(dtNode.children)
     }
 
 

@@ -60,7 +60,12 @@ object HaskellAstConverter {
                 .groupBy { it.first.name }
                 .map {
                     return@map if (it.value.size > 1) {
-                        it.value.filterNot { it.first.body is AstLeaf }.first()
+                        val notLeafs = it.value.filterNot { it.first.body is AstLeaf }
+                        if(notLeafs.isEmpty()) {
+                            it.value.first()
+                        } else {
+                            notLeafs.first()
+                        }
                     } else {
                         it.value.first()
                     }
@@ -105,6 +110,7 @@ object HaskellAstConverter {
                 }
 
             }
+
             while (globalFunctions.isNotEmpty()) {
                 insertFunctions(nodes.first())
             }

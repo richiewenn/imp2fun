@@ -1,5 +1,6 @@
 package cz.richiewenn.imp2fun
 
+import com.github.javaparser.ast.comments.LineComment
 import com.github.javaparser.ast.expr.*
 import com.github.javaparser.ast.stmt.BlockStmt
 import com.github.javaparser.ast.stmt.EmptyStmt

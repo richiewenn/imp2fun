@@ -20,6 +20,26 @@ data class DTNode(
         }
         return f(ArrayList(), listOf(this))
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is DTNode) return false
+
+        if (id != other.id) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return id
+    }
+
+    companion object {
+        var lastId = 0
+    }
+
+    val id = lastId++
+
 }
 
 class DominatorTree {

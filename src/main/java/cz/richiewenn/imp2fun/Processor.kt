@@ -75,12 +75,11 @@ fun main(args: Array<String>) {
     val code = """public class Simple {
     public int simple() {
         int a = 0;
-        for (int i = 0; i < 10; i++) {
-            for(int j = 0; j < 20; j = j + 1) {
+            if(a == 0) {
                 a++;
             }
-        }
-        return a;
+
+return a;
     }
 }"""
 
@@ -95,9 +94,21 @@ fun main(args: Array<String>) {
         phiFunctionsOptimizer +
         phiFunctionsArgumentOptimizer +
         renameVariables +
-//        printDot +
-        convertToHaskellAst
-//        printAstDot
+        printDot +
+        convertToHaskellAst +
+        printAstDot
+
+//    val ast = astPreprocessor(code) +
+//        cfgPreprocessor +
+//        fillInEdges +
+//        removeJumps +
+//        dominanceFrontiers +
+//        insertPhiFunctions +
+//        phiFunctionsOptimizer +
+//        phiFunctionsArgumentOptimizer +
+//        renameVariables +
+//        convertToHaskellAst
+//    println(ast.printBeautifulCode())
 
     println("-----------------------")
     println(result.printCode())
