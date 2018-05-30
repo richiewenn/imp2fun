@@ -27,7 +27,7 @@ object HaskellAstConverter {
             val nodes = mapNode(currentRoot, 0) // This must be executed early so the globalFunctions are populated
 
             // Go up and find what argument names should be used to call this phi functions
-            fun getVarName(parent: Ast?, arg: String): String? {
+            fun getVarName(parent: Ast?, arg: String, fromWhere: Ast?): String? {
                 if (parent == null) {
                     return arg + "_NOTRESOLVABLEYET"
                 }
@@ -35,22 +35,24 @@ object HaskellAstConverter {
                     if (getOriginalName(parent.variableName) == getOriginalName(arg)) {
                         return parent.variableName
                     } else {
-                        return getVarName(parent.parent, arg)
+                        return getVarName(parent.parent, arg, parent)
                     }
-                } else if (parent is FunctionAstNode) {
+                } else if (parent is FunctionAstNode
+                    && parent.theRest != fromWhere
+                ) {
                     if (parent.args.any { getOriginalName(it) == getOriginalName(arg) }) {
                         return parent.args.find { getOriginalName(it) == getOriginalName(arg) }!!
                     } else {
-                        return getVarName(parent.parent, arg)
+                        return getVarName(parent.parent, arg, parent)
                     }
                 } else {
-                    return getVarName(parent.parent, arg)
+                    return getVarName(parent.parent, arg, parent)
                 }
             }
             this.phiCalls.forEach { phi ->
                 phi.first.args = phi.first.args.map { arg ->
                     val parent = phi.first.parent
-                    val name = getVarName(parent, arg)
+                    val name = getVarName(parent, arg, phi.first)
                     return@map name
                 }.filterNotNull()
             }
@@ -121,7 +123,7 @@ object HaskellAstConverter {
                     .mapNotNull { arg ->
                         return@mapNotNull if(arg.endsWith("_NOTRESOLVABLEYET")) {
                             val parent = phi.first.parent
-                            getVarName(parent, arg.removeSuffix("_NOTRESOLVABLEYET"))
+                            getVarName(parent, arg.removeSuffix("_NOTRESOLVABLEYET"), phi.first)
                         } else {
                             arg
                         }

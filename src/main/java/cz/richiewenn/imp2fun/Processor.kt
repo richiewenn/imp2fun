@@ -74,17 +74,31 @@ private operator fun Ast.plus(f: (Ast) -> Ast): Ast {
 fun main(args: Array<String>) {
     val code = """public class Simple {
     public int simple() {
-        int a = 0;
-        int b = 0;
-        for (int i = 0; i < 10; i++) {
-            a++;
-            if(a % 2 == 0) {
-                b++;
-            }
-        }
-        return a + b;
+    int a = 0;
+    int b = 0;
+    for (int i = 0; i < 10; i++) {
+        a++;
     }
+    for (int j = 0; j < 20; j++) {
+        b++;
+    }
+    int c = a + b;
+    return c;
+}
 }"""
+//val code = """public class Simple {
+//    public int simple() {
+//        int a = 0;
+//        int b = 0;
+//        for (int i = 0; i < 10; i++) {
+//            a++;
+//            if(a % 2 == 0) {
+//                b++;
+//            }
+//        }
+//        return a + b;
+//    }
+//}"""
 
     val result = astPreprocessor(code) +
         cfgPreprocessor +

@@ -41,6 +41,7 @@ class PhiFunctionArgumentOptimizer {
             }
             return haveNotBeenThereYet
                 .mapNotNull { it.node?.outEdges }
+                .map { it.filterNot { it.exp is PhiExpressions } }
                 .map { f(it) }
                 .all { it }
         }
