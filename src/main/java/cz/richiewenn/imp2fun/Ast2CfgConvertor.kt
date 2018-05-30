@@ -16,7 +16,7 @@ object Ast2Cfg {
     fun toCFG(nodes: List<AstNode>): Node {
         return nodes.map { node ->
             return@map when (node.metaModel.typeName) {
-                // TODO: when (node) { is ExpressionStmt -> ..... etc.
+            // TODO: when (node) { is ExpressionStmt -> ..... etc.
                 "MethodDeclaration" -> Node()
                 "ForStmt" -> forToCFG(node)
                 "UnaryExpr", "BinaryExpr", "VariableDeclarationExpr", "AssignExpr",
@@ -24,10 +24,15 @@ object Ast2Cfg {
                 "IfStmt" -> ifToCFG(node)
                 "ElseStmt" -> elseToCFG(node)
                 "BlockStmt" -> toCFG(node.childNodes)
-                "ReturnStmt" -> Node(Edge(Node(), ReturnExpr(((node as ReturnStmt).expression.orElseThrow {RuntimeException()} as NameExpr).nameAsString )))
-                else -> TODO(node.metaModel.typeName)
+                "ReturnStmt" -> Node(Edge(
+                    Node(),
+                    ReturnExpr(ExpressionMapper
+                        .map((node as ReturnStmt).expression
+                            .orElseThrow { RuntimeException("No support for return void yet.") }))
+                ))
+                 else -> TODO(node.metaModel.typeName)
             }
-        }.reduce { left, right -> left.plusLeft(right)}
+        }.reduce { left, right -> left.plusLeft(right) }
     }
 
     private fun elseToCFG(node: com.github.javaparser.ast.Node): Node {
@@ -78,21 +83,20 @@ class For(def: List<AstNode>) {
 
     fun getRoot(): Node {
         val astCondition = Node()
-        val backExpr = if(ipp != null) ExpressionMapper.map(ipp) else JumpExpr()
+        val backExpr = if (ipp != null) ExpressionMapper.map(ipp) else JumpExpr()
         val backEdge = Edge(astCondition, backExpr, Edge.Orientation.BACKWARD)
         val backNode = Node(backEdge)
         if (this.condition != null) {
             astCondition.outEdges = listOf(
                 Edge(Node(), OtherwiseExpr()),
                 if (!isEmptyBody) {
-                    if(ipp != null) {
+                    if (ipp != null) {
                         blockBody?.plusLeft(backNode)
                     }
                     blockBody?.lastLeft()?.outEdges = listOf(Edge(astCondition, JumpExpr(), Edge.Orientation.BACKWARD))
                     condition.node = blockBody
                     condition
-                }
-                else {
+                } else {
                     condition.node = backNode
                     condition
                 }
@@ -101,7 +105,7 @@ class For(def: List<AstNode>) {
 
         }
 
-        if(defI != null) {
+        if (defI != null) {
             defI.outEdges.first().node = astCondition
             return defI
         }

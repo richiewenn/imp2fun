@@ -9,9 +9,9 @@ data class BinaryAstNode(
 ): AstNode(
     mutableListOf(left, right)
 ) {
-    override fun print() = "${left.print()} ${operator.value} ${right.print()}"
-    override fun printCode() = "${left.printCode()} ${operator.value} ${right.printCode()}"
+    override fun print() = "${left.print()} ${operator.forHaskell()} ${right.print()}"
+    override fun printCode() = "${left.printCode()} ${operator.forHaskell()} ${right.printCode()}"
     override fun printBeautifulCode(parent: Ast?, offset: Int): String {
-        return "${left.printBeautifulCode(this)} ${operator.value} ${right.printBeautifulCode(this)}"
+        return "${left.printBeautifulCode(this)} ${operator.forHaskell()} ${right.printBeautifulCode(this)}"
     }
 }

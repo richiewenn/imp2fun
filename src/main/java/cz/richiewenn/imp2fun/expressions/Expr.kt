@@ -10,7 +10,7 @@ interface Expr : Serializable {
                 is VarAssignExpr -> list + get(list, expr.value)
                 is VarUsageExpr -> list + expr
                 is BinaryExpr -> get(list, expr.left) + get(list, expr.right)
-                is ReturnExpr -> list + expr.returnExpr
+                is ReturnExpr -> get(list, expr.expr)
                 is PhiExpressions -> list + expr.phis.map { VarUsageExpr(it.target.name) }
                 else -> emptyList()
             }

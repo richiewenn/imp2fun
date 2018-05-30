@@ -10,8 +10,7 @@ public class Simple {
                 b++;
             }
         }
-        int c = a + b;
-        return c;
+        return a + b;
     }
 }
 

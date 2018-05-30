@@ -75,11 +75,14 @@ fun main(args: Array<String>) {
     val code = """public class Simple {
     public int simple() {
         int a = 0;
-            if(a == 0) {
-                a++;
+        int b = 0;
+        for (int i = 0; i < 10; i++) {
+            a++;
+            if(a % 2 == 0) {
+                b++;
             }
-
-return a;
+        }
+        return a + b;
     }
 }"""
 

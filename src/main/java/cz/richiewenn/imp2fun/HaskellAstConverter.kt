@@ -160,7 +160,7 @@ object HaskellAstConverter {
         return listOf(when (exp) {
             is ConstantExpr -> ConstantAstLeaf(exp.value)
         //(exp.target as VarDefExpr).name, mapExpression(exp.value)
-            is ReturnExpr -> FunctionCallAstLeaf(exp.returnExpr.variableName, emptyList())
+            is ReturnExpr -> mapExpression(exp.expr, level + 1)
             is VarAssignExpr -> if (nodes.isNotEmpty()) {
                 LetRec((exp.target as VarDefExpr).name, mapExpression(exp.value, level + 1), nodes.first())
             } else {
